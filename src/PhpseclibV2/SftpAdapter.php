@@ -34,20 +34,9 @@ use function rtrim;
  */
 class SftpAdapter implements FilesystemAdapter
 {
-    /**
-     * @var ConnectionProvider
-     */
-    private $connectionProvider;
+    private \League\Flysystem\UnixVisibility\VisibilityConverter $visibilityConverter;
 
-    /**
-     * @var VisibilityConverter
-     */
-    private $visibilityConverter;
-
-    /**
-     * @var PathPrefixer
-     */
-    private $prefixer;
+    private \League\Flysystem\PathPrefixer $prefixer;
 
     /**
      * @var MimeTypeDetector
@@ -55,13 +44,12 @@ class SftpAdapter implements FilesystemAdapter
     private $mimeTypeDetector;
 
     public function __construct(
-        ConnectionProvider $connectionProvider,
+        private ConnectionProvider $connectionProvider,
         string $root,
         ?VisibilityConverter $visibilityConverter = null,
         ?MimeTypeDetector $mimeTypeDetector = null,
         private bool $detectMimeTypeUsingPath = false,
     ) {
-        $this->connectionProvider = $connectionProvider;
         $this->prefixer = new PathPrefixer($root);
         $this->visibilityConverter = $visibilityConverter ?? new PortableVisibilityConverter();
         $this->mimeTypeDetector = $mimeTypeDetector ?? new FinfoMimeTypeDetector();
@@ -90,9 +78,7 @@ class SftpAdapter implements FilesystemAdapter
     }
 
     /**
-     * @param string          $path
      * @param string|resource $contents
-     * @param Config          $config
      *
      * @throws FilesystemException
      */
@@ -287,10 +273,12 @@ class SftpAdapter implements FilesystemAdapter
         }
 
         foreach ($listing as $filename => $attributes) {
-            if ($filename === '.' || $filename === '..') {
+            if ($filename === '.') {
                 continue;
             }
-
+            if ($filename === '..') {
+                continue;
+            }
             // Ensure numeric keys are strings.
             $filename = (string) $filename;
             $path = $this->prefixer->stripPrefix($location . ltrim($filename, '/'));

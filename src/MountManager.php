@@ -16,12 +16,9 @@ class MountManager implements FilesystemOperator
     /**
      * @var array<string, FilesystemOperator>
      */
-    private $filesystems = [];
+    private array $filesystems = [];
 
-    /**
-     * @var Config
-     */
-    private $config;
+    private \League\Flysystem\Config $config;
 
     /**
      * MountManager constructor.
@@ -73,7 +70,10 @@ class MountManager implements FilesystemOperator
         [$filesystem, $path] = $this->determineFilesystemAndPath($location);
 
         try {
-            return $filesystem->fileExists($path) || $filesystem->directoryExists($path);
+            if ($filesystem->fileExists($path)) {
+                return true;
+            }
+            return $filesystem->directoryExists($path);
         } catch (Throwable $exception) {
             throw UnableToCheckExistence::forLocation($location, $exception);
         }
@@ -124,9 +124,7 @@ class MountManager implements FilesystemOperator
             $filesystem
                 ->listContents($path, $deep)
                 ->map(
-                    function (StorageAttributes $attributes) use ($mountIdentifier) {
-                        return $attributes->withPath(sprintf('%s://%s', $mountIdentifier, $attributes->path()));
-                    }
+                    fn(StorageAttributes $attributes) => $attributes->withPath(sprintf('%s://%s', $mountIdentifier, $attributes->path()))
                 );
     }
 
@@ -345,8 +343,6 @@ class MountManager implements FilesystemOperator
     }
 
     /**
-     * @param string $path
-     *
      * @return array{0:FilesystemOperator, 1:string, 2:string}
      */
     private function determineFilesystemAndPath(string $path): array

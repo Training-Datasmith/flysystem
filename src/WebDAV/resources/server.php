@@ -17,7 +17,7 @@ $rootDirectory = new Directory($rootPath);
 $server = new Server($rootDirectory);
 $server->addPlugin(new Sabre\DAV\Browser\Plugin());
 
-if (strpos($_SERVER['REQUEST_URI'], 'unknown-mime-type.md5') === false) {
+if (!str_contains($_SERVER['REQUEST_URI'], 'unknown-mime-type.md5')) {
     $guesser = new Sabre\DAV\Browser\GuessContentType();
     $guesser->extensionMap['svg'] = 'image/svg+xml';
     $server->addPlugin($guesser);

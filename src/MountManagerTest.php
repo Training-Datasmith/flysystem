@@ -16,30 +16,15 @@ use function tmpfile;
  */
 class MountManagerTest extends TestCase
 {
-    /**
-     * @var ExceptionThrowingFilesystemAdapter
-     */
-    private $firstStubAdapter;
+    private \League\Flysystem\AdapterTestUtilities\ExceptionThrowingFilesystemAdapter $firstStubAdapter;
 
-    /**
-     * @var ExceptionThrowingFilesystemAdapter
-     */
-    private $secondStubAdapter;
+    private \League\Flysystem\AdapterTestUtilities\ExceptionThrowingFilesystemAdapter $secondStubAdapter;
 
-    /**
-     * @var MountManager
-     */
-    private $mountManager;
+    private \League\Flysystem\MountManager $mountManager;
 
-    /**
-     * @var Filesystem
-     */
-    private $firstFilesystem;
+    private ?\League\Flysystem\Filesystem $firstFilesystem = null;
 
-    /**
-     * @var Filesystem
-     */
-    private $secondFilesystem;
+    private ?\League\Flysystem\Filesystem $secondFilesystem = null;
 
     protected function setUp(): void
     {
@@ -217,7 +202,7 @@ class MountManagerTest extends TestCase
     {
         $this->firstStubAdapter->stageException($method, 'location.txt', $exception);
 
-        $this->expectException(get_class($exception));
+        $this->expectException($exception::class);
 
         $this->mountManager->{$method}('first://location.txt');
     }

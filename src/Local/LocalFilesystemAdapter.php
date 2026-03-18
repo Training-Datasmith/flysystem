@@ -64,10 +64,7 @@ class LocalFilesystemAdapter implements FilesystemAdapter, ChecksumProvider
     private MimeTypeDetector $mimeTypeDetector;
     private string $rootLocation;
 
-    /**
-     * @var bool
-     */
-    private $rootLocationIsSetup = false;
+    private bool $rootLocationIsSetup = false;
 
     public function __construct(
         string $location,
@@ -189,14 +186,11 @@ class LocalFilesystemAdapter implements FilesystemAdapter, ChecksumProvider
 
     protected function deleteFileInfoObject(SplFileInfo $file): bool
     {
-        switch ($file->getType()) {
-            case 'dir':
-                return @rmdir((string) $file->getRealPath());
-            case 'link':
-                return @unlink((string) $file->getPathname());
-            default:
-                return @unlink((string) $file->getRealPath());
-        }
+        return match ($file->getType()) {
+            'dir' => @rmdir((string) $file->getRealPath()),
+            'link' => @unlink($file->getPathname()),
+            default => @unlink((string) $file->getRealPath()),
+        };
     }
 
     public function listContents(string $path, bool $deep): iterable
@@ -330,7 +324,7 @@ class LocalFilesystemAdapter implements FilesystemAdapter, ChecksumProvider
         clearstatcache(true, $dirname);
 
         if ( ! is_dir($dirname)) {
-            $errorMessage = isset($mkdirError['message']) ? $mkdirError['message'] : '';
+            $errorMessage = $mkdirError['message'] ?? '';
 
             throw UnableToCreateDirectory::atLocation($dirname, $errorMessage);
         }

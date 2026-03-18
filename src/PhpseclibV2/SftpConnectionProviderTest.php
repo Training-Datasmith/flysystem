@@ -21,8 +21,6 @@ class SftpConnectionProviderTest extends TestCase
         if ( ! class_exists('phpseclib\Net\SFTP')) {
             self::markTestSkipped("PHPSecLib V2 is not installed");
         }
-
-        parent::setUp();
     }
 
     /**

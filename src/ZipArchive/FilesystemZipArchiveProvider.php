@@ -8,10 +8,7 @@ use ZipArchive;
 
 class FilesystemZipArchiveProvider implements ZipArchiveProvider
 {
-    /**
-     * @var bool
-     */
-    private $parentDirectoryCreated = false;
+    private bool $parentDirectoryCreated = false;
 
     public function __construct(private string $filename, private int $localDirectoryPermissions = 0700)
     {

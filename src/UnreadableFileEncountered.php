@@ -8,10 +8,7 @@ use RuntimeException;
 
 final class UnreadableFileEncountered extends RuntimeException implements FilesystemException
 {
-    /**
-     * @var string
-     */
-    private $location;
+    private ?string $location = null;
 
     public function location(): string
     {

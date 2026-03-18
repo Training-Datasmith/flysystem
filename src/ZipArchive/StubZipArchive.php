@@ -22,8 +22,6 @@ class StubZipArchive extends ZipArchive
     /**
      * @param string $dirname
      * @param int    $flags
-     *
-     * @return bool
      */
     public function addEmptyDir($dirname, $flags = 0): bool
     {
@@ -45,8 +43,6 @@ class StubZipArchive extends ZipArchive
      * @param string $localname
      * @param string $contents
      * @param int    $flags
-     *
-     * @return bool
      */
     public function addFromString($localname, $contents, $flags = 0): bool
     {
@@ -64,9 +60,6 @@ class StubZipArchive extends ZipArchive
         $this->failNextDeleteName = true;
     }
 
-    /**
-     * @return bool
-     */
     public function deleteName($name): bool
     {
         if ($this->failNextDeleteName) {

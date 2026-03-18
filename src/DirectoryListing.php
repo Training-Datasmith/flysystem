@@ -64,9 +64,7 @@ class DirectoryListing implements IteratorAggregate
     {
         $listing = $this->toArray();
 
-        usort($listing, function (StorageAttributes $a, StorageAttributes $b) {
-            return $a->path() <=> $b->path();
-        });
+        usort($listing, fn(StorageAttributes $a, StorageAttributes $b) => $a->path() <=> $b->path());
 
         return new DirectoryListing($listing);
     }
@@ -88,6 +86,6 @@ class DirectoryListing implements IteratorAggregate
     {
         return $this->listing instanceof Traversable
             ? iterator_to_array($this->listing, false)
-            : (array) $this->listing;
+            : $this->listing;
     }
 }

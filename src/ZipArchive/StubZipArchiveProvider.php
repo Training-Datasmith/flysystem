@@ -8,27 +8,14 @@ use ZipArchive;
 
 class StubZipArchiveProvider implements ZipArchiveProvider
 {
-    private FilesystemZipArchiveProvider $provider;
+    private ?\League\Flysystem\ZipArchive\StubZipArchive $archive = null;
 
-    /**
-     * @var StubZipArchive
-     */
-    private $archive;
-
-    public function __construct(private string $filename, int $localDirectoryPermissions = 0700)
+    public function __construct(private string $filename)
     {
-        $this->provider = new FilesystemZipArchiveProvider($filename, $localDirectoryPermissions);
     }
 
     public function createZipArchive(): ZipArchive
     {
-        if ( ! $this->archive instanceof StubZipArchive) {
-            $zipArchive = $this->provider->createZipArchive();
-            $zipArchive->close();
-            unset($zipArchive);
-            $this->archive = new StubZipArchive();
-        }
-
         $this->archive->open($this->filename, ZipArchive::CREATE);
 
         return $this->archive;

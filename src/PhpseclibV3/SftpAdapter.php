@@ -76,9 +76,7 @@ class SftpAdapter implements FilesystemAdapter
     }
 
     /**
-     * @param string          $path
      * @param string|resource $contents
-     * @param Config          $config
      *
      * @throws FilesystemException
      */
@@ -273,10 +271,12 @@ class SftpAdapter implements FilesystemAdapter
         }
 
         foreach ($listing as $filename => $attributes) {
-            if ($filename === '.' || $filename === '..') {
+            if ($filename === '.') {
                 continue;
             }
-
+            if ($filename === '..') {
+                continue;
+            }
             // Ensure numeric keys are strings.
             $filename = (string) $filename;
             $path = $this->prefixer->stripPrefix($location . ltrim($filename, '/'));

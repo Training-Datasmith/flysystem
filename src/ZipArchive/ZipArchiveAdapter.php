@@ -278,7 +278,7 @@ final class ZipArchiveAdapter implements FilesystemAdapter
             throw UnableToRetrieveMetadata::fileSize($path, 'It\'s a directory.');
         }
 
-        return new FileAttributes($path, $stats['size'], null, null);
+        return new FileAttributes($path, $stats['size']);
     }
 
     public function listContents(string $path, bool $deep): iterable
@@ -296,12 +296,13 @@ final class ZipArchiveAdapter implements FilesystemAdapter
             // @codeCoverageIgnoreEnd
 
             $itemPath = $stats['name'];
-
-            if (
-                $location === $itemPath
-                || ($deep && $location !== '' && ! str_starts_with($itemPath, $location))
-                || ($deep === false && ! $this->isAtRootDirectory($location, $itemPath))
-            ) {
+            if ($location === $itemPath) {
+                continue;
+            }
+            if ($deep && $location !== '' && ! str_starts_with($itemPath, $location)) {
+                continue;
+            }
+            if ($deep === false && ! $this->isAtRootDirectory($location, $itemPath)) {
                 continue;
             }
 

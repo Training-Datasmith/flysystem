@@ -11,41 +11,10 @@ use phpseclib\Net\SFTP;
  */
 class StubSftpConnectionProvider implements ConnectionProvider
 {
-    /**
-     * @var string
-     */
-    private $host;
+    private ?\League\Flysystem\PhpseclibV2\SftpStub $connection = null;
 
-    /**
-     * @var string
-     */
-    private $username;
-
-    /**
-     * @var string|null
-     */
-    private $password;
-
-    /**
-     * @var int
-     */
-    private $port;
-
-    /**
-     * @var SftpStub
-     */
-    private $connection;
-
-    public function __construct(
-        string $host,
-        string $username,
-        ?string $password = null,
-        int $port = 22
-    ) {
-        $this->host = $host;
-        $this->username = $username;
-        $this->password = $password;
-        $this->port = $port;
+    public function __construct(private string $host, private string $username, private ?string $password = null, private int $port = 22)
+    {
     }
 
     public function provideConnection(): SFTP

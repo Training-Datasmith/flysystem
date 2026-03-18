@@ -31,7 +31,7 @@ abstract class WebDAVAdapterTestCase extends FilesystemAdapterTestCase
      */
     public function overwriting_a_file(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $this->givenWeHaveAnExistingFile('path.txt', 'contents');
             $adapter = $this->adapter();
 
@@ -47,7 +47,7 @@ abstract class WebDAVAdapterTestCase extends FilesystemAdapterTestCase
      */
     public function creating_a_directory_with_leading_and_trailing_slashes(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->createDirectory('/some/directory/', new Config());
 
@@ -60,7 +60,7 @@ abstract class WebDAVAdapterTestCase extends FilesystemAdapterTestCase
      */
     public function copying_a_file(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write(
                 'source.txt',
@@ -81,7 +81,7 @@ abstract class WebDAVAdapterTestCase extends FilesystemAdapterTestCase
      */
     public function copying_a_file_again(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write(
                 'source.txt',
@@ -102,7 +102,7 @@ abstract class WebDAVAdapterTestCase extends FilesystemAdapterTestCase
      */
     public function moving_a_file(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write(
                 'source.txt',
@@ -129,7 +129,7 @@ abstract class WebDAVAdapterTestCase extends FilesystemAdapterTestCase
     {
         $this->expectException(UnableToMoveFile::class);
 
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $this->adapter()->move('source.txt', 'destination.txt', new Config());
         });
     }
@@ -139,7 +139,7 @@ abstract class WebDAVAdapterTestCase extends FilesystemAdapterTestCase
      */
     public function part_of_prefix_already_exists(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $config = new Config();
 
             $adapter1 = new WebDAVAdapter(

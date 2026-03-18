@@ -46,8 +46,10 @@ class Filesystem implements FilesystemOperator
     public function has(string $location): bool
     {
         $path = $this->pathNormalizer->normalizePath($location);
-
-        return $this->adapter->fileExists($path) || $this->adapter->directoryExists($path);
+        if ($this->adapter->fileExists($path)) {
+            return true;
+        }
+        return $this->adapter->directoryExists($path);
     }
 
     public function write(string $location, string $contents, array $config = []): void
@@ -126,10 +128,11 @@ class Filesystem implements FilesystemOperator
 
         if ($from === $to) {
             $resolutionStrategy = $config->get(Config::OPTION_MOVE_IDENTICAL_PATH, ResolveIdenticalPathConflict::TRY);
-
             if ($resolutionStrategy === ResolveIdenticalPathConflict::FAIL) {
                 throw UnableToMoveFile::sourceAndDestinationAreTheSame($source, $destination);
-            } elseif ($resolutionStrategy === ResolveIdenticalPathConflict::IGNORE) {
+            }
+
+            if ($resolutionStrategy === ResolveIdenticalPathConflict::IGNORE) {
                 return;
             }
         }
@@ -145,10 +148,11 @@ class Filesystem implements FilesystemOperator
 
         if ($from === $to) {
             $resolutionStrategy = $config->get(Config::OPTION_COPY_IDENTICAL_PATH, ResolveIdenticalPathConflict::TRY);
-
             if ($resolutionStrategy === ResolveIdenticalPathConflict::FAIL) {
                 throw UnableToCopyFile::sourceAndDestinationAreTheSame($source, $destination);
-            } elseif ($resolutionStrategy === ResolveIdenticalPathConflict::IGNORE) {
+            }
+
+            if ($resolutionStrategy === ResolveIdenticalPathConflict::IGNORE) {
                 return;
             }
         }
@@ -254,7 +258,8 @@ class Filesystem implements FilesystemOperator
             throw new InvalidStreamProvided(
                 "Invalid stream provided, expected stream resource, received " . gettype($contents)
             );
-        } elseif ($type = get_resource_type($contents) !== 'stream') {
+        }
+        if ($type = get_resource_type($contents) !== 'stream') {
             throw new InvalidStreamProvided(
                 "Invalid stream provided, expected stream resource, received resource of type " . $type
             );
@@ -282,7 +287,7 @@ class Filesystem implements FilesystemOperator
          * setting.
          */
         if ($retainVisibility && ! array_key_exists(Config::OPTION_VISIBILITY, $config)) {
-            $fullConfig = $fullConfig->withoutSettings(Config::OPTION_VISIBILITY)->extend($config);
+            return $fullConfig->withoutSettings(Config::OPTION_VISIBILITY)->extend($config);
         }
 
         return $fullConfig;

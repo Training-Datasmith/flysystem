@@ -24,10 +24,7 @@ use function getenv;
  */
 class GridFSAdapterTest extends TestCase
 {
-    /**
-     * @var string
-     */
-    private static $adapterPrefix = 'test-prefix';
+    private static string $adapterPrefix = 'test-prefix';
 
     public static function tearDownAfterClass(): void
     {
@@ -43,7 +40,7 @@ class GridFSAdapterTest extends TestCase
     {
         $adapter = $this->adapter();
 
-        $this->runScenario(function () use ($adapter) {
+        $this->runScenario(function () use ($adapter): void {
             $this->givenWeHaveAnExistingFile('file.txt');
             $fileAttributes = $adapter->lastModified('file.txt');
             $extra = $fileAttributes->extraMetadata();
@@ -61,7 +58,7 @@ class GridFSAdapterTest extends TestCase
 
         $adapter = $this->adapter();
 
-        $this->runScenario(function () use ($adapter) {
+        $this->runScenario(function () use ($adapter): void {
             $adapter->createDirectory('path', new Config());
             $adapter->lastModified('path/');
         });
@@ -76,7 +73,7 @@ class GridFSAdapterTest extends TestCase
 
         $adapter = $this->adapter();
 
-        $this->runScenario(function () use ($adapter) {
+        $this->runScenario(function () use ($adapter): void {
             $adapter->createDirectory('path', new Config());
             $adapter->mimeType('path/');
         });
@@ -144,7 +141,7 @@ class GridFSAdapterTest extends TestCase
     public function reading_last_revision(): void
     {
         $this->runScenario(
-            function () {
+            function (): void {
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 1');
                 usleep(1000);
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 2');
@@ -163,7 +160,7 @@ class GridFSAdapterTest extends TestCase
     public function listing_contents_last_revision(bool $deep): void
     {
         $this->runScenario(
-            function () use ($deep) {
+            function () use ($deep): void {
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 1');
                 usleep(1000);
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 2');
@@ -185,7 +182,7 @@ class GridFSAdapterTest extends TestCase
     public function listing_contents_directory_with_multiple_files(): void
     {
         $this->runScenario(
-            function () {
+            function (): void {
                 $this->givenWeHaveAnExistingFile('some/file-1.txt');
                 $this->givenWeHaveAnExistingFile('some/file-2.txt');
                 $this->givenWeHaveAnExistingFile('some/other/file-1.txt');
@@ -207,7 +204,7 @@ class GridFSAdapterTest extends TestCase
     public function delete_all_revisions(): void
     {
         $this->runScenario(
-            function () {
+            function (): void {
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 1');
                 usleep(1000);
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 2');
@@ -227,7 +224,7 @@ class GridFSAdapterTest extends TestCase
     public function move_all_revisions(): void
     {
         $this->runScenario(
-            function () {
+            function (): void {
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 1');
                 usleep(1000);
                 $this->givenWeHaveAnExistingFile('file.txt', 'version 2');
@@ -245,8 +242,6 @@ class GridFSAdapterTest extends TestCase
     protected function tearDown(): void
     {
         self::getDatabase()->selectGridFSBucket()->drop();
-
-        parent::tearDown();
     }
 
     protected static function createFilesystemAdapter(): FilesystemAdapter

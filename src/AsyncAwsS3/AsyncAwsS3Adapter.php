@@ -97,16 +97,6 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
     private MimeTypeDetector $mimeTypeDetector;
 
     /**
-     * @var array|string[]
-     */
-    private array $forwardedOptions;
-
-    /**
-     * @var array|string[]
-     */
-    private array $metadataFields;
-
-    /**
      * @param S3Client|SimpleS3Client $client Uploading of files larger than 5GB is only supported with SimpleS3Client
      */
     public function __construct(
@@ -115,14 +105,18 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
         string $prefix = '',
         ?VisibilityConverter $visibility = null,
         ?MimeTypeDetector $mimeTypeDetector = null,
-        array $forwardedOptions = self::AVAILABLE_OPTIONS,
-        array $metadataFields = self::EXTRA_METADATA_FIELDS,
+        /**
+         * @var array|string[]
+         */
+        private array $forwardedOptions = self::AVAILABLE_OPTIONS,
+        /**
+         * @var array|string[]
+         */
+        private array $metadataFields = self::EXTRA_METADATA_FIELDS,
     ) {
         $this->prefixer = new PathPrefixer($prefix);
         $this->visibility = $visibility ?? new PortableVisibilityConverter();
         $this->mimeTypeDetector = $mimeTypeDetector ?? new FinfoMimeTypeDetector();
-        $this->forwardedOptions = $forwardedOptions;
-        $this->metadataFields = $metadataFields;
     }
 
     public function fileExists(string $path): bool
@@ -455,7 +449,7 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
             }
         }
 
-        if ('/' === substr($path, -1)) {
+        if (str_ends_with($path, '/')) {
             return new DirectoryAttributes(rtrim($path, '/'));
         }
 
@@ -476,7 +470,7 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
             $dateTime = $item->getLastModified();
             $metadata = $this->extractExtraMetadata($item);
         } else {
-            throw new \RuntimeException(sprintf('Object of class "%s" is not supported in %s()', \get_class($item), __METHOD__));
+            throw new \RuntimeException(sprintf('Object of class "%s" is not supported in %s()', $item::class, __METHOD__));
         }
 
         if ($dateTime instanceof \DateTimeInterface) {

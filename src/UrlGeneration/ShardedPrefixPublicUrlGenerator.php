@@ -27,7 +27,7 @@ final class ShardedPrefixPublicUrlGenerator implements PublicUrlGenerator
             throw new InvalidArgumentException('At least one prefix is required.');
         }
 
-        $this->prefixes = array_map(static fn (string $prefix) => new PathPrefixer($prefix, '/'), $prefixes);
+        $this->prefixes = array_map(static fn (string $prefix): \League\Flysystem\PathPrefixer => new PathPrefixer($prefix, '/'), $prefixes);
     }
 
     public function publicUrl(string $path, Config $config): string

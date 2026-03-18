@@ -26,10 +26,7 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 {
     private const ARCHIVE = __DIR__ . '/test.zip';
 
-    /**
-     * @var StubZipArchiveProvider
-     */
-    private static $archiveProvider;
+    private static ?\League\Flysystem\ZipArchive\StubZipArchiveProvider $archiveProvider = null;
 
     protected function setUp(): void
     {
@@ -91,7 +88,7 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 
         $this->expectException(UnableToWriteFile::class);
 
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $handle = stream_with_contents('contents');
             $this->adapter()->writeStream('some/path.txt', $handle, new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC]));
             is_resource($handle) && @fclose($handle);
@@ -100,15 +97,15 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 
     public static function scenariosThatCauseWritesToFail(): Generator
     {
-        yield "writing a file fails when writing" => [function () {
+        yield "writing a file fails when writing" => [function (): void {
             static::$archiveProvider->stubbedZipArchive()->failNextWrite();
         }];
 
-        yield "writing a file fails when setting visibility" => [function () {
+        yield "writing a file fails when setting visibility" => [function (): void {
             static::$archiveProvider->stubbedZipArchive()->failWhenSettingVisibility();
         }];
 
-        yield "writing a file fails to get the stream contents" => [function () {
+        yield "writing a file fails to get the stream contents" => [function (): void {
             mock_function('stream_get_contents', false);
         }];
     }
@@ -299,7 +296,7 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
      */
     public function moving_a_file_and_overwriting(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write(
                 'source.txt',

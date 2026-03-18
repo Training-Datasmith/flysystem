@@ -8,10 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class WhitespacePathNormalizerTest extends TestCase
 {
-    /**
-     * @var WhitespacePathNormalizer
-     */
-    private $normalizer;
+    private \League\Flysystem\WhitespacePathNormalizer $normalizer;
 
     protected function setUp(): void
     {

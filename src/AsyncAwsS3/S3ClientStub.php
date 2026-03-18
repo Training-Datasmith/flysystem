@@ -44,12 +44,12 @@ class S3ClientStub extends SimpleS3Client
     /**
      * @var Exception[]
      */
-    private $stagedExceptions = [];
+    private array $stagedExceptions = [];
 
     /**
      * @var Result[]
      */
-    private $stagedResult = [];
+    private array $stagedResult = [];
 
     public function __construct(SimpleS3Client $client, $configuration = [])
     {

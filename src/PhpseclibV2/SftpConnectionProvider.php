@@ -14,91 +14,25 @@ use Throwable;
  */
 class SftpConnectionProvider implements ConnectionProvider
 {
-    /**
-     * @var string
-     */
-    private $host;
+    private ?\phpseclib\Net\SFTP $connection = null;
 
-    /**
-     * @var string
-     */
-    private $username;
-
-    /**
-     * @var string|null
-     */
-    private $password;
-
-    /**
-     * @var bool
-     */
-    private $useAgent;
-
-    /**
-     * @var int
-     */
-    private $port;
-
-    /**
-     * @var int
-     */
-    private $timeout;
-
-    /**
-     * @var SFTP|null
-     */
-    private $connection;
-
-    /**
-     * @var ConnectivityChecker
-     */
-    private $connectivityChecker;
-
-    /**
-     * @var string|null
-     */
-    private $hostFingerprint;
-
-    /**
-     * @var string|null
-     */
-    private $privateKey;
-
-    /**
-     * @var string|null
-     */
-    private $passphrase;
-
-    /**
-     * @var int
-     */
-    private $maxTries;
+    private \League\Flysystem\PhpseclibV2\ConnectivityChecker $connectivityChecker;
 
     public function __construct(
-        string $host,
-        string $username,
-        ?string $password = null,
-        ?string $privateKey = null,
-        ?string $passphrase = null,
-        int $port = 22,
-        bool $useAgent = false,
-        int $timeout = 10,
-        int $maxTries = 4,
-        ?string $hostFingerprint = null,
+        private string $host,
+        private string $username,
+        private ?string $password = null,
+        private ?string $privateKey = null,
+        private ?string $passphrase = null,
+        private int $port = 22,
+        private bool $useAgent = false,
+        private int $timeout = 10,
+        private int $maxTries = 4,
+        private ?string $hostFingerprint = null,
         ?ConnectivityChecker $connectivityChecker = null,
         private bool $disableStatCache = true,
     ) {
-        $this->host = $host;
-        $this->username = $username;
-        $this->password = $password;
-        $this->privateKey = $privateKey;
-        $this->passphrase = $passphrase;
-        $this->useAgent = $useAgent;
-        $this->port = $port;
-        $this->timeout = $timeout;
-        $this->hostFingerprint = $hostFingerprint;
         $this->connectivityChecker = $connectivityChecker ?? new SimpleConnectivityChecker();
-        $this->maxTries = $maxTries;
     }
 
     public function provideConnection(): SFTP
@@ -212,7 +146,7 @@ class SftpConnectionProvider implements ConnectionProvider
 
     private function loadPrivateKey(): RSA
     {
-        if ("---" !== substr($this->privateKey, 0, 3) && is_file($this->privateKey)) {
+        if (!str_starts_with($this->privateKey, "---") && is_file($this->privateKey)) {
             $this->privateKey = file_get_contents($this->privateKey);
         }
 

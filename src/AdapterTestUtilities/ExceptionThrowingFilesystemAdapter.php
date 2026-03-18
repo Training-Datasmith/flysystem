@@ -12,18 +12,12 @@ use League\Flysystem\FilesystemOperationFailed;
 class ExceptionThrowingFilesystemAdapter implements FilesystemAdapter
 {
     /**
-     * @var FilesystemAdapter
-     */
-    private $adapter;
-
-    /**
      * @var array<string, FilesystemOperationFailed>
      */
-    private $stagedExceptions = [];
+    private array $stagedExceptions = [];
 
-    public function __construct(FilesystemAdapter $adapter)
+    public function __construct(private FilesystemAdapter $adapter)
     {
-        $this->adapter = $adapter;
     }
 
     public function stageException(string $method, string $path, FilesystemOperationFailed $exception): void
@@ -31,7 +25,7 @@ class ExceptionThrowingFilesystemAdapter implements FilesystemAdapter
         $this->stagedExceptions[join('@', [$method, $path])] = $exception;
     }
 
-    private function throwStagedException(string $method, $path): void
+    private function throwStagedException(string $method, string $path): void
     {
         $method = preg_replace('~.+::~', '', $method);
         $key = join('@', [$method, $path]);

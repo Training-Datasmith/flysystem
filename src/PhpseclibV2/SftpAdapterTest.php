@@ -21,10 +21,7 @@ use function class_exists;
  */
 class SftpAdapterTest extends FilesystemAdapterTestCase
 {
-    /**
-     * @var ConnectionProvider
-     */
-    private static $connectionProvider;
+    private static ?\League\Flysystem\PhpseclibV2\StubSftpConnectionProvider $connectionProvider = null;
 
     /**
      * @var SftpStub
@@ -222,14 +219,10 @@ class SftpAdapterTest extends FilesystemAdapterTestCase
         return static::$connectionProvider;
     }
 
-    /**
-     * @return SftpAdapter
-     */
     private function adapterWithInvalidRoot(): SftpAdapter
     {
         $provider = static::connectionProvider();
-        $adapter = new SftpAdapter($provider, '/invalid');
 
-        return $adapter;
+        return new SftpAdapter($provider, '/invalid');
     }
 }

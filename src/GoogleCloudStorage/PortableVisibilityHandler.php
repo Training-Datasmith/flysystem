@@ -37,7 +37,7 @@ class PortableVisibilityHandler implements VisibilityHandler
     {
         try {
             $acl = $object->acl()->get(['entity' => 'allUsers']);
-        } catch (NotFoundException $exception) {
+        } catch (NotFoundException) {
             return Visibility::PRIVATE;
         }
 
@@ -48,13 +48,10 @@ class PortableVisibilityHandler implements VisibilityHandler
 
     public function visibilityToPredefinedAcl(string $visibility): string
     {
-        switch ($visibility) {
-            case Visibility::PUBLIC:
-                return $this->predefinedPublicAcl;
-            case self::NO_PREDEFINED_VISIBILITY:
-                return self::NO_PREDEFINED_VISIBILITY;
-            default:
-                return $this->predefinedPrivateAcl;
-        }
+        return match ($visibility) {
+            Visibility::PUBLIC => $this->predefinedPublicAcl,
+            self::NO_PREDEFINED_VISIBILITY => self::NO_PREDEFINED_VISIBILITY,
+            default => $this->predefinedPrivateAcl,
+        };
     }
 }

@@ -38,25 +38,16 @@ use function iterator_to_array;
  */
 class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
 {
-    /**
-     * @var bool
-     */
-    private $shouldCleanUp = false;
+    private bool $shouldCleanUp = false;
 
-    /**
-     * @var string
-     */
-    private static $adapterPrefix = 'test-prefix';
+    private static string $adapterPrefix = 'test-prefix';
 
     /**
      * @var S3Client|null
      */
-    private static $s3Client;
+    private static ?\AsyncAws\SimpleS3\SimpleS3Client $s3Client = null;
 
-    /**
-     * @var S3ClientStub
-     */
-    private static $stubS3Client;
+    private static ?\League\Flysystem\AsyncAwsS3\S3ClientStub $stubS3Client = null;
 
     private static function awsConfig(): array
     {
@@ -213,7 +204,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
      */
     public function delete_directory_replaces_special_characters_by_xml_entity_codes(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $directory = 'to-delete';
             $object = sprintf('/%s/\'\"&<>.txt', $directory);
 
@@ -342,7 +333,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
             ->getMock();
         $s3Client->expects(self::once())
             ->method('putObject')
-            ->with(self::callback(function (array $input) use ($file, $prefix, $bucket, $contents) {
+            ->with(self::callback(function (array $input) use ($file, $prefix, $bucket, $contents): bool {
                 if ($input['Key'] !== $prefix . '/' . $file) {
                     return false;
                 }
@@ -400,7 +391,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
      */
     public function moving_a_file_with_visibility(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write(
                 'source.txt',
@@ -426,7 +417,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
      */
     public function copying_a_file_with_visibility(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write(
                 'source.txt',
@@ -448,7 +439,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
      */
     public function copying_a_file_with_non_ascii_characters(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write(
                 'ıÇöü🤔.txt',
@@ -469,7 +460,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
      */
     public function top_level_directory_excluded_from_listing(): void
     {
-        $this->runScenario(function () {
+        $this->runScenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write('directory/file.txt', '', new Config());
             $adapter->createDirectory('empty', new Config());
@@ -504,6 +495,6 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
         $bucket = getenv('FLYSYSTEM_AWS_S3_BUCKET');
         $prefix = getenv('FLYSYSTEM_AWS_S3_PREFIX') ?: static::$adapterPrefix;
 
-        return new AsyncAwsS3Adapter(static::$stubS3Client, $bucket, $prefix, null, null);
+        return new AsyncAwsS3Adapter(static::$stubS3Client, $bucket, $prefix);
     }
 }

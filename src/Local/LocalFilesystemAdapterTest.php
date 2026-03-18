@@ -380,9 +380,7 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
         /** @var Traversable<StorageAttributes> $contentListing */
         $contentListing = $adapter->listContents('/', true);
         $listing = iterator_to_array($contentListing);
-        usort($listing, function (StorageAttributes $a, StorageAttributes $b) {
-            return strnatcasecmp($a->path(), $b->path());
-        });
+        usort($listing, fn(StorageAttributes $a, StorageAttributes $b) => strnatcasecmp($a->path(), $b->path()));
         /**
          * @var StorageAttributes $publicDirectoryAttributes
          * @var StorageAttributes $privateFileAttributes
@@ -777,13 +775,8 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
     }
 
     /* //////////////////////
-    // These are the utils //
-    ////////////////////// */
-
-    /**
-     * @param string $file
-     * @param int    $expectedPermissions
-     */
+       // These are the utils //
+       ////////////////////// */
     private function assertFileHasPermissions(string $file, int $expectedPermissions): void
     {
         clearstatcache(false, $file);
@@ -791,10 +784,6 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
         $this->assertEquals($expectedPermissions, $permissions);
     }
 
-    /**
-     * @param string $file
-     * @param string $expectedContents
-     */
     private function assertFileContains(string $file, string $expectedContents): void
     {
         $this->assertFileExists($file);
