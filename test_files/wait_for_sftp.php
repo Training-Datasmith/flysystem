@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use League\Flysystem\PhpseclibV2\SftpConnectionProvider as V2Provider;
 use League\Flysystem\PhpseclibV3\SftpConnectionProvider as V3Provider;
 use phpseclib3\Net\SFTP;
@@ -30,7 +32,7 @@ while (time() - $start < 60) {
     }
 }
 
-if ( ! $connected) {
+if (! $connected) {
     fwrite(STDERR, "Unable to start SFTP server.\n");
     exit(1);
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace League\Flysystem\PhpseclibV2;
 
+use function class_exists;
+
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
 use League\Flysystem\Config;
 use League\Flysystem\FilesystemAdapter;
@@ -11,9 +13,8 @@ use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToMoveFile;
 use League\Flysystem\UnableToReadFile;
-use League\Flysystem\UnableToWriteFile;
 
-use function class_exists;
+use League\Flysystem\UnableToWriteFile;
 
 /**
  * @group sftp
@@ -30,8 +31,8 @@ class SftpAdapterTest extends FilesystemAdapterTestCase
 
     public static function setUpBeforeClass(): void
     {
-        if ( ! class_exists('phpseclib\Net\SFTP')) {
-            self::markTestSkipped("PHPSecLib V2 is not installed");
+        if (! class_exists('phpseclib\Net\SFTP')) {
+            self::markTestSkipped('PHPSecLib V2 is not installed');
         }
     }
 
@@ -212,7 +213,7 @@ class SftpAdapterTest extends FilesystemAdapterTestCase
 
     private static function connectionProvider(): ConnectionProvider
     {
-        if ( ! static::$connectionProvider instanceof ConnectionProvider) {
+        if (! static::$connectionProvider instanceof ConnectionProvider) {
             static::$connectionProvider = new StubSftpConnectionProvider('localhost', 'foo', 'pass', 2222);
         }
 

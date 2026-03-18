@@ -15,6 +15,10 @@ use AsyncAws\S3\S3Client;
 use AsyncAws\S3\ValueObject\AwsObject;
 use AsyncAws\SimpleS3\SimpleS3Client;
 use Exception;
+
+use function getenv;
+use function iterator_to_array;
+
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 use League\Flysystem\ChecksumAlgoIsNotSupported;
@@ -30,8 +34,6 @@ use League\Flysystem\UnableToMoveFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToWriteFile;
 use League\Flysystem\Visibility;
-use function getenv;
-use function iterator_to_array;
 
 /**
  * @group aws
@@ -55,7 +57,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
         $secret = getenv('FLYSYSTEM_AWS_S3_SECRET');
         $region = getenv('FLYSYSTEM_AWS_S3_REGION') ?: 'eu-central-1';
 
-        if ( ! $key || ! $secret) {
+        if (! $key || ! $secret) {
             self::markTestSkipped('No AWS credentials present for testing.');
         }
 
@@ -79,7 +81,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
 
     protected function tearDown(): void
     {
-        if ( ! $this->shouldCleanUp) {
+        if (! $this->shouldCleanUp) {
             return;
         }
 
@@ -105,7 +107,7 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
 
         $bucket = getenv('FLYSYSTEM_AWS_S3_BUCKET');
 
-        if ( ! $bucket) {
+        if (! $bucket) {
             self::markTestSkipped('No AWS credentials present for testing.');
         }
 
@@ -283,9 +285,9 @@ class AsyncAwsS3AdapterTest extends FilesystemAdapterTestCase
 
     public static function dpFailingMetadataGetters(): iterable
     {
-        yield "mimeType" => [UnableToRetrieveMetadata::mimeType('filename.txt'), 'mimeType'];
-        yield "lastModified" => [UnableToRetrieveMetadata::lastModified('filename.txt'), 'lastModified'];
-        yield "fileSize" => [UnableToRetrieveMetadata::fileSize('filename.txt'), 'fileSize'];
+        yield 'mimeType' => [UnableToRetrieveMetadata::mimeType('filename.txt'), 'mimeType'];
+        yield 'lastModified' => [UnableToRetrieveMetadata::lastModified('filename.txt'), 'lastModified'];
+        yield 'fileSize' => [UnableToRetrieveMetadata::fileSize('filename.txt'), 'fileSize'];
     }
 
     /**

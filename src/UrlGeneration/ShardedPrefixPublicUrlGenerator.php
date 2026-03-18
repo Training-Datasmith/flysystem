@@ -1,14 +1,16 @@
 <?php
 
-namespace League\Flysystem\UrlGeneration;
+declare(strict_types=1);
 
-use InvalidArgumentException;
-use League\Flysystem\Config;
-use League\Flysystem\PathPrefixer;
+namespace League\Flysystem\UrlGeneration;
 
 use function array_map;
 use function count;
 use function crc32;
+
+use InvalidArgumentException;
+use League\Flysystem\Config;
+use League\Flysystem\PathPrefixer;
 
 final class ShardedPrefixPublicUrlGenerator implements PublicUrlGenerator
 {

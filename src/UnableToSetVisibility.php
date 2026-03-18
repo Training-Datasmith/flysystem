@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace League\Flysystem;
 
+use function rtrim;
+
 use RuntimeException;
 
 use Throwable;
-
-use function rtrim;
 
 final class UnableToSetVisibility extends RuntimeException implements FilesystemOperationFailed
 {

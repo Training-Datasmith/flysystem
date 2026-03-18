@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace League\Flysystem\Local;
 
-use const LOCK_EX;
+use function file_get_contents;
+use function file_put_contents;
+use function fileperms;
+use function is_resource;
+use function iterator_to_array;
+
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
 use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
@@ -26,15 +31,15 @@ use League\Flysystem\Visibility;
 use League\MimeTypeDetection\EmptyExtensionToMimeTypeMap;
 use League\MimeTypeDetection\ExtensionMimeTypeDetector;
 use League\MimeTypeDetection\FinfoMimeTypeDetector;
-use Traversable;
-use function file_get_contents;
-use function file_put_contents;
-use function fileperms;
-use function is_resource;
-use function iterator_to_array;
+
+use const LOCK_EX;
+
 use function mkdir;
 use function strnatcasecmp;
 use function symlink;
+
+use Traversable;
+
 use function usort;
 
 /**
@@ -134,7 +139,7 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
      */
     public function deleting_a_file_during_contents_listing(): void
     {
-        $adapter = new LocalFilesystemAdapter(static::ROOT, visibility: new class() implements VisibilityConverter {
+        $adapter = new LocalFilesystemAdapter(static::ROOT, visibility: new class () implements VisibilityConverter {
             private VisibilityConverter $visibility;
 
             public function __construct()
@@ -275,7 +280,7 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
     public function checking_if_a_file_exists(): void
     {
         $adapter = new LocalFilesystemAdapter(static::ROOT);
-        $adapter->write('/file.txt', 'contents', new Config);
+        $adapter->write('/file.txt', 'contents', new Config());
 
         $this->assertTrue($adapter->fileExists('/file.txt'));
     }
@@ -380,7 +385,7 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
         /** @var Traversable<StorageAttributes> $contentListing */
         $contentListing = $adapter->listContents('/', true);
         $listing = iterator_to_array($contentListing);
-        usort($listing, fn(StorageAttributes $a, StorageAttributes $b) => strnatcasecmp($a->path(), $b->path()));
+        usort($listing, fn (StorageAttributes $a, StorageAttributes $b) => strnatcasecmp($a->path(), $b->path()));
         /**
          * @var StorageAttributes $publicDirectoryAttributes
          * @var StorageAttributes $privateFileAttributes

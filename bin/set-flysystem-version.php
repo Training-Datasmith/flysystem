@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
@@ -7,7 +9,7 @@ use League\Flysystem\StorageAttributes;
 
 include_once __DIR__ . '/tools.php';
 
-if ( ! isset($argv[1])) {
+if (! isset($argv[1])) {
     panic('No base version provided');
 }
 

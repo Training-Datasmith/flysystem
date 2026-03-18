@@ -44,7 +44,7 @@ class SftpConnectionProvider implements ConnectionProvider
             ? $this->connection
             : $this->setupConnection();
 
-        if ( ! $this->connectivityChecker->isConnected($connection)) {
+        if (! $this->connectivityChecker->isConnected($connection)) {
             $connection->disconnect();
             $this->connection = null;
 
@@ -77,7 +77,7 @@ class SftpConnectionProvider implements ConnectionProvider
 
     private function checkFingerprint(SFTP $connection): void
     {
-        if ( ! $this->hostFingerprint) {
+        if (! $this->hostFingerprint) {
             return;
         }
 
@@ -107,7 +107,7 @@ class SftpConnectionProvider implements ConnectionProvider
             $this->authenticateWithPrivateKey($connection);
         } elseif ($this->useAgent) {
             $this->authenticateWithAgent($connection);
-        } elseif ( ! $connection->login($this->username, $this->password)) {
+        } elseif (! $connection->login($this->username, $this->password)) {
             throw UnableToAuthenticate::withPassword();
         }
     }
@@ -146,7 +146,7 @@ class SftpConnectionProvider implements ConnectionProvider
 
     private function loadPrivateKey(): RSA
     {
-        if (!str_starts_with($this->privateKey, "---") && is_file($this->privateKey)) {
+        if (!str_starts_with($this->privateKey, '---') && is_file($this->privateKey)) {
             $this->privateKey = file_get_contents($this->privateKey);
         }
 
@@ -156,7 +156,7 @@ class SftpConnectionProvider implements ConnectionProvider
             $key->setPassword($this->passphrase);
         }
 
-        if ( ! $key->loadKey($this->privateKey)) {
+        if (! $key->loadKey($this->privateKey)) {
             throw new UnableToLoadPrivateKey();
         }
 
@@ -167,7 +167,7 @@ class SftpConnectionProvider implements ConnectionProvider
     {
         $agent = new Agent();
 
-        if ( ! $connection->login($this->username, $agent)) {
+        if (! $connection->login($this->username, $agent)) {
             throw UnableToAuthenticate::withSshAgent();
         }
     }

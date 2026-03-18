@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace League\Flysystem;
 
-use DateTimeInterface;
-use Throwable;
-
 use function compact;
+
+use DateTimeInterface;
+
 use function method_exists;
 use function sprintf;
+
+use Throwable;
 
 class MountManager implements FilesystemOperator
 {
@@ -124,7 +126,7 @@ class MountManager implements FilesystemOperator
             $filesystem
                 ->listContents($path, $deep)
                 ->map(
-                    fn(StorageAttributes $attributes) => $attributes->withPath(sprintf('%s://%s', $mountIdentifier, $attributes->path()))
+                    fn (StorageAttributes $attributes) => $attributes->withPath(sprintf('%s://%s', $mountIdentifier, $attributes->path()))
                 );
     }
 
@@ -285,7 +287,7 @@ class MountManager implements FilesystemOperator
         /** @var FilesystemOperator $filesystem */
         [$filesystem, $path] = $this->determineFilesystemAndPath($path);
 
-        if ( ! method_exists($filesystem, 'publicUrl')) {
+        if (! method_exists($filesystem, 'publicUrl')) {
             throw new UnableToGeneratePublicUrl(sprintf('%s does not support generating public urls.', $filesystem::class), $path);
         }
 
@@ -297,7 +299,7 @@ class MountManager implements FilesystemOperator
         /** @var FilesystemOperator $filesystem */
         [$filesystem, $path] = $this->determineFilesystemAndPath($path);
 
-        if ( ! method_exists($filesystem, 'temporaryUrl')) {
+        if (! method_exists($filesystem, 'temporaryUrl')) {
             throw new UnableToGenerateTemporaryUrl(sprintf('%s does not support generating public urls.', $filesystem::class), $path);
         }
 
@@ -309,7 +311,7 @@ class MountManager implements FilesystemOperator
         /** @var FilesystemOperator $filesystem */
         [$filesystem, $path] = $this->determineFilesystemAndPath($path);
 
-        if ( ! method_exists($filesystem, 'checksum')) {
+        if (! method_exists($filesystem, 'checksum')) {
             throw new UnableToProvideChecksum(sprintf('%s does not support providing checksums.', $filesystem::class), $path);
         }
 
@@ -328,11 +330,11 @@ class MountManager implements FilesystemOperator
 
     private function guardAgainstInvalidMount(mixed $key, mixed $filesystem): void
     {
-        if ( ! is_string($key)) {
+        if (! is_string($key)) {
             throw UnableToMountFilesystem::becauseTheKeyIsNotValid($key);
         }
 
-        if ( ! $filesystem instanceof FilesystemOperator) {
+        if (! $filesystem instanceof FilesystemOperator) {
             throw UnableToMountFilesystem::becauseTheFilesystemWasNotValid($filesystem);
         }
     }
@@ -355,7 +357,7 @@ class MountManager implements FilesystemOperator
         /** @var string $mountPath */
         [$mountIdentifier, $mountPath] = explode('://', $path, 2);
 
-        if ( ! array_key_exists($mountIdentifier, $this->filesystems)) {
+        if (! array_key_exists($mountIdentifier, $this->filesystems)) {
             throw UnableToResolveFilesystemMount::becauseTheMountWasNotRegistered($mountIdentifier);
         }
 

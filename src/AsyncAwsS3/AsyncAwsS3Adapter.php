@@ -45,6 +45,7 @@ use League\Flysystem\Visibility;
 use League\MimeTypeDetection\FinfoMimeTypeDetector;
 use League\MimeTypeDetection\MimeTypeDetector;
 use Throwable;
+
 use function trim;
 
 class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, ChecksumProvider, TemporaryUrlGenerator
@@ -427,7 +428,7 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
 
         $attributes = $this->mapS3ObjectMetadata($result, $path);
 
-        if ( ! $attributes instanceof FileAttributes) {
+        if (! $attributes instanceof FileAttributes) {
             throw UnableToRetrieveMetadata::create($path, $type, 'Unable to retrieve file attributes, directory attributes received.');
         }
 
@@ -489,7 +490,7 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
 
         foreach ($this->metadataFields as $field) {
             $method = 'get' . $field;
-            if ( ! method_exists($metadata, $method)) {
+            if (! method_exists($metadata, $method)) {
                 continue;
             }
             $value = $metadata->$method();
@@ -534,7 +535,7 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
 
     public function publicUrl(string $path, Config $config): string
     {
-        if ( ! $this->client instanceof SimpleS3Client) {
+        if (! $this->client instanceof SimpleS3Client) {
             throw UnableToGeneratePublicUrl::noGeneratorConfigured($path, 'Client needs to be instance of SimpleS3Client');
         }
 
@@ -559,7 +560,7 @@ class AsyncAwsS3Adapter implements FilesystemAdapter, PublicUrlGenerator, Checks
             throw new UnableToProvideChecksum($exception->reason(), $path, $exception);
         }
 
-        if ( ! isset($metadata['ETag'])) {
+        if (! isset($metadata['ETag'])) {
             throw new UnableToProvideChecksum('ETag header not available.', $path);
         }
 

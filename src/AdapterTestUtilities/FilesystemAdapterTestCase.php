@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace League\Flysystem\AdapterTestUtilities;
 
-use const PHP_EOL;
 use DateInterval;
 use DateTimeImmutable;
+
+use function file_get_contents;
+
 use Generator;
+
+use function is_resource;
+use function iterator_to_array;
+
 use League\Flysystem\ChecksumProvider;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
@@ -23,11 +29,11 @@ use League\Flysystem\UnableToSetVisibility;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator;
 use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;
 use League\Flysystem\Visibility;
+
+use const PHP_EOL;
+
 use PHPUnit\Framework\TestCase;
 use Throwable;
-use function file_get_contents;
-use function is_resource;
-use function iterator_to_array;
 
 /**
  * @codeCoverageIgnore
@@ -55,7 +61,7 @@ abstract class FilesystemAdapterTestCase extends TestCase
 
     public function adapter(): FilesystemAdapter
     {
-        if ( ! static::$adapter instanceof FilesystemAdapter) {
+        if (! static::$adapter instanceof FilesystemAdapter) {
             static::$adapter = static::createFilesystemAdapter();
         }
 
@@ -184,20 +190,20 @@ abstract class FilesystemAdapterTestCase extends TestCase
 
     public static function filenameProvider(): Generator
     {
-        yield "a path with square brackets in filename 1" => ["some/file[name].txt"];
-        yield "a path with square brackets in filename 2" => ["some/file[0].txt"];
-        yield "a path with square brackets in filename 3" => ["some/file[10].txt"];
-        yield "a path with square brackets in dirname 1" => ["some[name]/file.txt"];
-        yield "a path with square brackets in dirname 2" => ["some[0]/file.txt"];
-        yield "a path with square brackets in dirname 3" => ["some[10]/file.txt"];
-        yield "a path with curly brackets in filename 1" => ["some/file{name}.txt"];
-        yield "a path with curly brackets in filename 2" => ["some/file{0}.txt"];
-        yield "a path with curly brackets in filename 3" => ["some/file{10}.txt"];
-        yield "a path with curly brackets in dirname 1" => ["some{name}/filename.txt"];
-        yield "a path with curly brackets in dirname 2" => ["some{0}/filename.txt"];
-        yield "a path with curly brackets in dirname 3" => ["some{10}/filename.txt"];
-        yield "a path with space in dirname" => ["some dir/filename.txt"];
-        yield "a path with space in filename" => ["somedir/file name.txt"];
+        yield 'a path with square brackets in filename 1' => ['some/file[name].txt'];
+        yield 'a path with square brackets in filename 2' => ['some/file[0].txt'];
+        yield 'a path with square brackets in filename 3' => ['some/file[10].txt'];
+        yield 'a path with square brackets in dirname 1' => ['some[name]/file.txt'];
+        yield 'a path with square brackets in dirname 2' => ['some[0]/file.txt'];
+        yield 'a path with square brackets in dirname 3' => ['some[10]/file.txt'];
+        yield 'a path with curly brackets in filename 1' => ['some/file{name}.txt'];
+        yield 'a path with curly brackets in filename 2' => ['some/file{0}.txt'];
+        yield 'a path with curly brackets in filename 3' => ['some/file{10}.txt'];
+        yield 'a path with curly brackets in dirname 1' => ['some{name}/filename.txt'];
+        yield 'a path with curly brackets in dirname 2' => ['some{0}/filename.txt'];
+        yield 'a path with curly brackets in dirname 3' => ['some{10}/filename.txt'];
+        yield 'a path with space in dirname' => ['some dir/filename.txt'];
+        yield 'a path with space in filename' => ['somedir/file name.txt'];
     }
 
     /**
@@ -905,7 +911,7 @@ abstract class FilesystemAdapterTestCase extends TestCase
     {
         $adapter = $this->adapter();
 
-        if ( ! $adapter instanceof PublicUrlGenerator) {
+        if (! $adapter instanceof PublicUrlGenerator) {
             $this->markTestSkipped('Adapter does not supply public URls');
         }
 
@@ -924,7 +930,7 @@ abstract class FilesystemAdapterTestCase extends TestCase
     {
         $adapter = $this->adapter();
 
-        if ( ! $adapter instanceof TemporaryUrlGenerator) {
+        if (! $adapter instanceof TemporaryUrlGenerator) {
             $this->markTestSkipped('Adapter does not supply temporary URls');
         }
 
@@ -944,7 +950,7 @@ abstract class FilesystemAdapterTestCase extends TestCase
     {
         $adapter = $this->adapter();
 
-        if ( ! $adapter instanceof ChecksumProvider) {
+        if (! $adapter instanceof ChecksumProvider) {
             $this->markTestSkipped('Adapter does not supply providing checksums');
         }
 
@@ -960,7 +966,7 @@ abstract class FilesystemAdapterTestCase extends TestCase
     {
         $adapter = $this->adapter();
 
-        if ( ! $adapter instanceof ChecksumProvider) {
+        if (! $adapter instanceof ChecksumProvider) {
             $this->markTestSkipped('Adapter does not supply providing checksums');
         }
 
@@ -976,7 +982,7 @@ abstract class FilesystemAdapterTestCase extends TestCase
     {
         $adapter = $this->adapter();
 
-        if ( ! $adapter instanceof ChecksumProvider) {
+        if (! $adapter instanceof ChecksumProvider) {
             $this->markTestSkipped('Adapter does not supply providing checksums');
         }
 

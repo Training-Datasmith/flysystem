@@ -9,22 +9,24 @@ use DateTimeInterface;
 use Generator;
 use GuzzleHttp\Psr7\StreamWrapper;
 use GuzzleHttp\Psr7\Utils;
+
+use function iterator_to_array;
+
 use IteratorAggregate;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator;
 use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;
 use LogicException;
-use PHPUnit\Framework\TestCase;
 
-use function iterator_to_array;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group core
  */
 class FilesystemTest extends TestCase
 {
-    const ROOT = __DIR__ . '/../test_files/test-root';
+    public const ROOT = __DIR__ . '/../test_files/test-root';
 
     private ?\League\Flysystem\Filesystem $filesystem = null;
 
@@ -75,8 +77,8 @@ class FilesystemTest extends TestCase
     {
         $handle = tmpfile();
         fclose($handle);
-        yield "resource that is not open" => [$handle];
-        yield "something that is not a resource" => [false];
+        yield 'resource that is not open' => [$handle];
+        yield 'something that is not a resource' => [false];
     }
 
     /**
@@ -393,7 +395,7 @@ class FilesystemTest extends TestCase
     public function listing_exceptions_are_uniformely_represented(): void
     {
         $filesystem = new Filesystem(
-            new class() extends InMemoryFilesystemAdapter {
+            new class () extends InMemoryFilesystemAdapter {
                 public function listContents(string $path, bool $deep): iterable
                 {
                     yield from parent::listContents($path, $deep);
@@ -414,7 +416,7 @@ class FilesystemTest extends TestCase
     public function failing_to_create_a_public_url(): void
     {
         $filesystem = new Filesystem(
-            new class() extends InMemoryFilesystemAdapter implements PublicUrlGenerator {
+            new class () extends InMemoryFilesystemAdapter implements PublicUrlGenerator {
                 public function publicUrl(string $path, Config $config): string
                 {
                     throw new UnableToGeneratePublicUrl('No reason', $path);
@@ -485,7 +487,7 @@ class FilesystemTest extends TestCase
         $filesystem = new Filesystem(
             new InMemoryFilesystemAdapter(),
             [],
-            publicUrlGenerator: new class() implements PublicUrlGenerator {
+            publicUrlGenerator: new class () implements PublicUrlGenerator {
                 public function publicUrl(string $path, Config $config): string
                 {
                     return 'custom/' . $path;
@@ -545,7 +547,7 @@ class FilesystemTest extends TestCase
      */
     public function get_checksum_for_adapter_that_does_not_support_specific_algo(): void
     {
-        $adapter = new class() extends InMemoryFilesystemAdapter implements ChecksumProvider {
+        $adapter = new class () extends InMemoryFilesystemAdapter implements ChecksumProvider {
             public function checksum(string $path, Config $config): string
             {
                 throw new ChecksumAlgoIsNotSupported();
@@ -602,7 +604,7 @@ class FilesystemTest extends TestCase
     {
         $filesystem = new Filesystem(
             new InMemoryFilesystemAdapter(),
-            temporaryUrlGenerator: new class() implements TemporaryUrlGenerator {
+            temporaryUrlGenerator: new class () implements TemporaryUrlGenerator {
                 public function temporaryUrl(string $path, DateTimeInterface $expiresAt, Config $config): string
                 {
                     return 'https://flysystem.thephpleague.com/' . $path . '?exporesAt=' . $expiresAt->format('U');
@@ -751,100 +753,100 @@ class FilesystemTest extends TestCase
             ['retain_visibility' => true, 'visibility' => 'private'],
             [],
             null,
-            'private'
+            'private',
         ];
         yield 'retain visibility, write default, default public' => [
             ['retain_visibility' => true, 'visibility' => 'public'],
             [],
             null,
-            'public'
+            'public',
         ];
         yield 'retain visibility, write public, default private' => [
             ['retain_visibility' => true, 'visibility' => 'private'],
             [],
             'public',
-            'public'
+            'public',
         ];
         yield 'retain visibility, write private, default public' => [
             ['retain_visibility' => true, 'visibility' => 'public'],
             [],
             'private',
-            'private'
+            'private',
         ];
 
         yield 'retain visibility, write default, default private, execute public' => [
             ['retain_visibility' => true, 'visibility' => 'private'],
             ['visibility' => 'public'],
             null,
-            'public'
+            'public',
         ];
         yield 'retain visibility, write default, default public, execute private' => [
             ['retain_visibility' => true, 'visibility' => 'public'],
             ['visibility' => 'private'],
             null,
-            'private'
+            'private',
         ];
         yield 'retain visibility, write public, default private, execute private' => [
             ['retain_visibility' => true, 'visibility' => 'private'],
             ['visibility' => 'private'],
             'public',
-            'private'
+            'private',
         ];
         yield 'retain visibility, write private, default public, execute public' => [
             ['retain_visibility' => true, 'visibility' => 'public'],
             ['visibility' => 'public'],
             'private',
-            'public'
+            'public',
         ];
 
         yield 'do not retain visibility, write default, default private' => [
             ['retain_visibility' => false, 'visibility' => 'private'],
             [],
             null,
-            'private'
+            'private',
         ];
         yield 'do not retain visibility, write default, default public' => [
             ['retain_visibility' => false, 'visibility' => 'public'],
             [],
             null,
-            'public'
+            'public',
         ];
         yield 'do not retain visibility, write public, default private' => [
             ['retain_visibility' => false, 'visibility' => 'private'],
             [],
             'public',
-            'private'
+            'private',
         ];
         yield 'do not retain visibility, write private, default public' => [
             ['retain_visibility' => false, 'visibility' => 'public'],
             [],
             'private',
-            'public'
+            'public',
         ];
 
         yield 'do not retain visibility, write default, default private, execute public' => [
             ['retain_visibility' => false, 'visibility' => 'private'],
             ['visibility' => 'public'],
             null,
-            'public'
+            'public',
         ];
         yield 'do not retain visibility, write default, default public, execute private' => [
             ['retain_visibility' => false, 'visibility' => 'public'],
             ['visibility' => 'private'],
             null,
-            'private'
+            'private',
         ];
         yield 'do not retain visibility, write public, default private, execute public' => [
             ['retain_visibility' => false, 'visibility' => 'private'],
             ['visibility' => 'public'],
             'public',
-            'public'
+            'public',
         ];
         yield 'do not retain visibility, write private, default public, execute private' => [
             ['retain_visibility' => false, 'visibility' => 'public'],
             ['visibility' => 'private'],
             'private',
-            'private'
+            'private',
         ];
     }
 }

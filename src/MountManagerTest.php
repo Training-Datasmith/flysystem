@@ -1,13 +1,17 @@
 <?php
 
-namespace League\Flysystem;
+declare(strict_types=1);
 
-use League\Flysystem\AdapterTestUtilities\ExceptionThrowingFilesystemAdapter;
-use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
-use PHPUnit\Framework\TestCase;
+namespace League\Flysystem;
 
 use function fclose;
 use function is_resource;
+
+use League\Flysystem\AdapterTestUtilities\ExceptionThrowingFilesystemAdapter;
+
+use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use PHPUnit\Framework\TestCase;
+
 use function stream_get_contents;
 use function tmpfile;
 

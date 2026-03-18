@@ -25,9 +25,10 @@ use League\Flysystem\UnixVisibility\VisibilityConverter;
 use League\MimeTypeDetection\FinfoMimeTypeDetector;
 use League\MimeTypeDetection\MimeTypeDetector;
 use phpseclib\Net\SFTP;
-use Throwable;
 
 use function rtrim;
+
+use Throwable;
 
 /**
  * @deprecated The "League\Flysystem\PhpseclibV2\SftpAdapter" class is deprecated since Flysystem 3.0, use "League\Flysystem\PhpseclibV3\SftpAdapter" instead.
@@ -88,7 +89,7 @@ class SftpAdapter implements FilesystemAdapter
         $connection = $this->connectionProvider->provideConnection();
         $location = $this->prefixer->prefixPath($path);
 
-        if ( ! $connection->put($location, $contents, SFTP::SOURCE_STRING)) {
+        if (! $connection->put($location, $contents, SFTP::SOURCE_STRING)) {
             throw UnableToWriteFile::atLocation($path, 'not able to write the file');
         }
 
@@ -123,7 +124,7 @@ class SftpAdapter implements FilesystemAdapter
             $visibility
         ) : $this->visibilityConverter->defaultForDirectories();
 
-        if ( ! $connection->mkdir($location, $mode, true) && ! $connection->is_dir($location)) {
+        if (! $connection->mkdir($location, $mode, true) && ! $connection->is_dir($location)) {
             throw UnableToCreateDirectory::atLocation($directory);
         }
     }
@@ -156,7 +157,7 @@ class SftpAdapter implements FilesystemAdapter
         $connection = $this->connectionProvider->provideConnection();
         $contents = $connection->get($location);
 
-        if ( ! is_string($contents)) {
+        if (! is_string($contents)) {
             throw UnableToReadFile::fromLocation($path);
         }
 
@@ -170,7 +171,7 @@ class SftpAdapter implements FilesystemAdapter
         /** @var resource $readStream */
         $readStream = fopen('php://temp', 'w+');
 
-        if ( ! $connection->get($location, $readStream)) {
+        if (! $connection->get($location, $readStream)) {
             fclose($readStream);
             throw UnableToReadFile::fromLocation($path);
         }
@@ -206,7 +207,7 @@ class SftpAdapter implements FilesystemAdapter
         $connection = $this->connectionProvider->provideConnection();
         $mode = $this->visibilityConverter->forFile($visibility);
 
-        if ( ! $connection->chmod($mode, $location, false)) {
+        if (! $connection->chmod($mode, $location, false)) {
             throw UnableToSetVisibility::atLocation($path);
         }
     }
@@ -217,13 +218,13 @@ class SftpAdapter implements FilesystemAdapter
         $connection = $this->connectionProvider->provideConnection();
         $stat = $connection->stat($location);
 
-        if ( ! is_array($stat)) {
+        if (! is_array($stat)) {
             throw UnableToRetrieveMetadata::create($path, $type);
         }
 
         $attributes = $this->convertListingToAttributes($path, $stat);
 
-        if ( ! $attributes instanceof FileAttributes) {
+        if (! $attributes instanceof FileAttributes) {
             throw UnableToRetrieveMetadata::create($path, $type, 'path is not a file');
         }
 
@@ -326,7 +327,7 @@ class SftpAdapter implements FilesystemAdapter
             throw UnableToMoveFile::fromLocationTo($source, $destination, $exception);
         }
 
-        if ( ! $connection->rename($sourceLocation, $destinationLocation)) {
+        if (! $connection->rename($sourceLocation, $destinationLocation)) {
             throw UnableToMoveFile::fromLocationTo($source, $destination);
         }
     }

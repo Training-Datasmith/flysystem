@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\Flysystem\Local {
     function rmdir(...$arguments)
     {
-        if ( ! is_mocked('rmdir')) {
+        if (! is_mocked('rmdir')) {
             return \rmdir(...$arguments);
         }
 
@@ -12,7 +14,7 @@ namespace League\Flysystem\Local {
 
     function unlink(...$arguments)
     {
-        if ( ! is_mocked('unlink')) {
+        if (! is_mocked('unlink')) {
             return \unlink(...$arguments);
         }
 
@@ -21,7 +23,7 @@ namespace League\Flysystem\Local {
 
     function filemtime(...$arguments)
     {
-        if ( ! is_mocked('filemtime')) {
+        if (! is_mocked('filemtime')) {
             return \filemtime(...$arguments);
         }
 
@@ -30,7 +32,7 @@ namespace League\Flysystem\Local {
 
     function filesize(...$arguments)
     {
-        if ( ! is_mocked('filesize')) {
+        if (! is_mocked('filesize')) {
             return \filesize(...$arguments);
         }
 
@@ -41,7 +43,7 @@ namespace League\Flysystem\Local {
 namespace League\Flysystem\InMemory {
     function time()
     {
-        if ( ! is_mocked('time')) {
+        if (! is_mocked('time')) {
             return \time();
         }
 
@@ -52,7 +54,7 @@ namespace League\Flysystem\InMemory {
 namespace League\Flysystem\Ftp {
     function ftp_raw(...$arguments)
     {
-        if ( ! is_mocked('ftp_raw')) {
+        if (! is_mocked('ftp_raw')) {
             return \ftp_raw(...$arguments);
         }
 
@@ -61,7 +63,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_set_option(...$arguments)
     {
-        if ( ! is_mocked('ftp_set_option')) {
+        if (! is_mocked('ftp_set_option')) {
             return \ftp_set_option(...$arguments);
         }
 
@@ -70,7 +72,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_pasv(...$arguments)
     {
-        if ( ! is_mocked('ftp_pasv')) {
+        if (! is_mocked('ftp_pasv')) {
             return \ftp_pasv(...$arguments);
         }
 
@@ -79,7 +81,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_pwd(...$arguments)
     {
-        if ( ! is_mocked('ftp_pwd')) {
+        if (! is_mocked('ftp_pwd')) {
             return \ftp_pwd(...$arguments);
         }
 
@@ -88,7 +90,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_fput(...$arguments)
     {
-        if ( ! is_mocked('ftp_fput')) {
+        if (! is_mocked('ftp_fput')) {
             return \ftp_fput(...$arguments);
         }
 
@@ -97,7 +99,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_chmod(...$arguments)
     {
-        if ( ! is_mocked('ftp_chmod')) {
+        if (! is_mocked('ftp_chmod')) {
             return \ftp_chmod(...$arguments);
         }
 
@@ -106,7 +108,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_mkdir(...$arguments)
     {
-        if ( ! is_mocked('ftp_mkdir')) {
+        if (! is_mocked('ftp_mkdir')) {
             return \ftp_mkdir(...$arguments);
         }
 
@@ -115,7 +117,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_delete(...$arguments)
     {
-        if ( ! is_mocked('ftp_delete')) {
+        if (! is_mocked('ftp_delete')) {
             return \ftp_delete(...$arguments);
         }
 
@@ -124,7 +126,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_rmdir(...$arguments)
     {
-        if ( ! is_mocked('ftp_rmdir')) {
+        if (! is_mocked('ftp_rmdir')) {
             return \ftp_rmdir(...$arguments);
         }
 
@@ -133,7 +135,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_fget(...$arguments)
     {
-        if ( ! is_mocked('ftp_fget')) {
+        if (! is_mocked('ftp_fget')) {
             return \ftp_fget(...$arguments);
         }
 
@@ -142,7 +144,7 @@ namespace League\Flysystem\Ftp {
 
     function ftp_rawlist(...$arguments)
     {
-        if ( ! is_mocked('ftp_rawlist')) {
+        if (! is_mocked('ftp_rawlist')) {
             return \ftp_rawlist(...$arguments);
         }
 
@@ -153,7 +155,7 @@ namespace League\Flysystem\Ftp {
 namespace League\Flysystem\ZipArchive {
     function stream_get_contents(...$arguments)
     {
-        if ( ! is_mocked('stream_get_contents')) {
+        if (! is_mocked('stream_get_contents')) {
             return \stream_get_contents(...$arguments);
         }
 

@@ -32,7 +32,7 @@ class FilesystemZipArchiveProvider implements ZipArchiveProvider
             return;
         }
 
-        if ( ! is_dir($dirname)) {
+        if (! is_dir($dirname)) {
             throw UnableToCreateParentDirectory::atLocation($fullPath, error_get_last()['message'] ?? '');
         }
     }

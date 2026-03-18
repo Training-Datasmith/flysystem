@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace League\Flysystem\ZipArchive;
 
+use function fclose;
+use function fopen;
+
 use Generator;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
@@ -23,13 +26,12 @@ use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
 use League\Flysystem\UnixVisibility\VisibilityConverter;
 use League\MimeTypeDetection\FinfoMimeTypeDetector;
 use League\MimeTypeDetection\MimeTypeDetector;
-use Throwable;
-use ZipArchive;
 
-use function fclose;
-use function fopen;
 use function rewind;
 use function stream_copy_to_stream;
+
+use Throwable;
+use ZipArchive;
 
 final class ZipArchiveAdapter implements FilesystemAdapter
 {
@@ -69,7 +71,7 @@ final class ZipArchiveAdapter implements FilesystemAdapter
         $archive = $this->zipArchiveProvider->createZipArchive();
         $prefixedPath = $this->pathPrefixer->prefixPath($path);
 
-        if ( ! $archive->addFromString($prefixedPath, $contents)) {
+        if (! $archive->addFromString($prefixedPath, $contents)) {
             throw UnableToWriteFile::atLocation($path, 'writing the file failed');
         }
 
@@ -138,7 +140,7 @@ final class ZipArchiveAdapter implements FilesystemAdapter
         $statusString = $zipArchive->getStatusString();
         $zipArchive->close();
 
-        if ( ! $success) {
+        if (! $success) {
             throw UnableToDeleteFile::atLocation($path, $statusString);
         }
     }
@@ -155,11 +157,11 @@ final class ZipArchiveAdapter implements FilesystemAdapter
 
             $itemPath = $stats['name'];
 
-            if ( ! str_starts_with($itemPath, $prefixedPath)) {
+            if (! str_starts_with($itemPath, $prefixedPath)) {
                 continue;
             }
 
-            if ( ! $archive->deleteIndex($i)) {
+            if (! $archive->deleteIndex($i)) {
                 $statusString = $archive->getStatusString();
                 $archive->close();
                 throw UnableToDeleteDirectory::atLocation($path, $statusString);
@@ -200,7 +202,7 @@ final class ZipArchiveAdapter implements FilesystemAdapter
             throw UnableToSetVisibility::atLocation($path, $statusString);
         }
 
-        if ( ! $this->setVisibilityAttribute($stats['name'], $visibility, $archive)) {
+        if (! $this->setVisibilityAttribute($stats['name'], $visibility, $archive)) {
             $statusString1 = $archive->getStatusString();
             $archive->close();
             throw UnableToSetVisibility::atLocation($path, $statusString1);
@@ -409,7 +411,7 @@ final class ZipArchiveAdapter implements FilesystemAdapter
                 continue;
             }
 
-            if ( ! $this->setVisibilityAttribute($dirPath, $visibility, $archive)) {
+            if (! $this->setVisibilityAttribute($dirPath, $visibility, $archive)) {
                 $archive->close();
                 throw UnableToCreateDirectory::atLocation($dirname, 'Unable to set visibility.');
             }

@@ -42,8 +42,8 @@ class PathPrefixerTest extends TestCase
 
     public static function dpRootPaths(): iterable
     {
-        yield "unix-style root path" => ['/', '/', 'path.txt', '/path.txt'];
-        yield "windows-style root path" => ['\\', '\\', 'path.txt', '\\path.txt'];
+        yield 'unix-style root path' => ['/', '/', 'path.txt', '/path.txt'];
+        yield 'windows-style root path' => ['\\', '\\', 'path.txt', '\\path.txt'];
     }
 
     /**

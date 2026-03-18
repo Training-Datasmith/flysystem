@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace League\Flysystem\PhpseclibV2;
 
-use phpseclib\Net\SFTP;
-use PHPUnit\Framework\TestCase;
-
 use function class_exists;
+
+use phpseclib\Net\SFTP;
+
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group sftp
@@ -18,8 +19,8 @@ class SftpConnectionProviderTest extends TestCase
 {
     protected function setUp(): void
     {
-        if ( ! class_exists('phpseclib\Net\SFTP')) {
-            self::markTestSkipped("PHPSecLib V2 is not installed");
+        if (! class_exists('phpseclib\Net\SFTP')) {
+            self::markTestSkipped('PHPSecLib V2 is not installed');
         }
     }
 
@@ -37,7 +38,7 @@ class SftpConnectionProviderTest extends TestCase
                 'password' => 'pass',
                 'port' => 2222,
                 'timeout' => 10,
-                'connectivityChecker' => new FixatedConnectivityChecker(5)
+                'connectivityChecker' => new FixatedConnectivityChecker(5),
             ]
         );
 
@@ -55,7 +56,7 @@ class SftpConnectionProviderTest extends TestCase
             'password' => 'pass',
             'port' => 2222,
             'timeout' => 10,
-            'connectivityChecker' => new FixatedConnectivityChecker(4)
+            'connectivityChecker' => new FixatedConnectivityChecker(4),
         ]);
         $connection = $provider->provideConnection();
         $sameConnection = $provider->provideConnection();

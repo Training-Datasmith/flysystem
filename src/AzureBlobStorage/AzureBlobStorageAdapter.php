@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace League\Flysystem\AzureBlobStorage;
 
+use function base64_decode;
+use function bin2hex;
+
 use DateTime;
 use DateTimeInterface;
 use League\Flysystem\ChecksumAlgoIsNotSupported;
@@ -38,10 +41,10 @@ use MicrosoftAzure\Storage\Common\Exceptions\ServiceException;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\StorageServiceSettings;
 use MicrosoftAzure\Storage\Common\Models\ContinuationToken;
-use Throwable;
-use function base64_decode;
-use function bin2hex;
+
 use function stream_get_contents;
+
+use Throwable;
 
 class AzureBlobStorageAdapter implements FilesystemAdapter, PublicUrlGenerator, ChecksumProvider, TemporaryUrlGenerator
 {
@@ -53,8 +56,8 @@ class AzureBlobStorageAdapter implements FilesystemAdapter, PublicUrlGenerator, 
         'ContentLanguage',
         'ContentEncoding',
     ];
-    const ON_VISIBILITY_THROW_ERROR = 'throw';
-    const ON_VISIBILITY_IGNORE = 'ignore';
+    public const ON_VISIBILITY_THROW_ERROR = 'throw';
+    public const ON_VISIBILITY_IGNORE = 'ignore';
 
     private MimeTypeDetector $mimeTypeDetector;
     private PathPrefixer $prefixer;
@@ -371,7 +374,7 @@ class AzureBlobStorageAdapter implements FilesystemAdapter, PublicUrlGenerator, 
 
     public function temporaryUrl(string $path, DateTimeInterface $expiresAt, Config $config): string
     {
-        if ( ! $this->serviceSettings instanceof StorageServiceSettings) {
+        if (! $this->serviceSettings instanceof StorageServiceSettings) {
             throw UnableToGenerateTemporaryUrl::noGeneratorConfigured(
                 $path,
                 'The $serviceSettings constructor parameter must be set to generate temporary URLs.',

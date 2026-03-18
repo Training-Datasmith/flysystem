@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace League\Flysystem\WebDAV;
 
+use function array_key_exists;
+use function array_shift;
+use function dirname;
+use function explode;
+use function fclose;
+use function implode;
+
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
@@ -21,21 +28,16 @@ use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToSetVisibility;
 use League\Flysystem\UnableToWriteFile;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator;
+
+use function parse_url;
+use function rawurldecode;
+
 use RuntimeException;
 use Sabre\DAV\Client;
 use Sabre\DAV\Xml\Property\ResourceType;
 use Sabre\HTTP\ClientHttpException;
 use Sabre\HTTP\Request;
 use Throwable;
-
-use function array_key_exists;
-use function array_shift;
-use function dirname;
-use function explode;
-use function fclose;
-use function implode;
-use function parse_url;
-use function rawurldecode;
 
 class WebDAVAdapter implements FilesystemAdapter, PublicUrlGenerator
 {
@@ -186,7 +188,7 @@ class WebDAVAdapter implements FilesystemAdapter, PublicUrlGenerator
                 throw new RuntimeException('Unexpected status code received while deleting file: ' . $statusCode);
             }
         } catch (Throwable $exception) {
-            if ( ! ($exception instanceof ClientHttpException && $exception->getCode() === 404)) {
+            if (! ($exception instanceof ClientHttpException && $exception->getCode() === 404)) {
                 throw UnableToDeleteFile::atLocation($path, $exception->getMessage(), $exception);
             }
         }
@@ -203,7 +205,7 @@ class WebDAVAdapter implements FilesystemAdapter, PublicUrlGenerator
                 throw new RuntimeException('Unexpected status code received while deleting file: ' . $statusCode);
             }
         } catch (Throwable $exception) {
-            if ( ! ($exception instanceof ClientHttpException && $exception->getCode() === 404)) {
+            if (! ($exception instanceof ClientHttpException && $exception->getCode() === 404)) {
                 throw UnableToDeleteDirectory::atLocation($path, $exception->getMessage(), $exception);
             }
         }
@@ -292,7 +294,7 @@ class WebDAVAdapter implements FilesystemAdapter, PublicUrlGenerator
             if ($this->propsIsDirectory($object)) {
                 yield new DirectoryAttributes($path, lastModified: $object['last_modified'] ?? null);
 
-                if ( ! $deep) {
+                if (! $deep) {
                     continue;
                 }
 
@@ -445,7 +447,7 @@ class WebDAVAdapter implements FilesystemAdapter, PublicUrlGenerator
         try {
             $result = $this->client->propFind($location, [$property]);
 
-            if ( ! array_key_exists($property, $result)) {
+            if (! array_key_exists($property, $result)) {
                 throw new RuntimeException('Invalid response, missing key: ' . $property);
             }
 

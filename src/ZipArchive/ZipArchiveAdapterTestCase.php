@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace League\Flysystem\ZipArchive;
 
 use Generator;
+
+use function iterator_to_array;
+
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
 use League\Flysystem\Config;
 use League\Flysystem\FilesystemAdapter;
@@ -15,9 +18,8 @@ use League\Flysystem\UnableToDeleteFile;
 use League\Flysystem\UnableToMoveFile;
 use League\Flysystem\UnableToSetVisibility;
 use League\Flysystem\UnableToWriteFile;
-use League\Flysystem\Visibility;
 
-use function iterator_to_array;
+use League\Flysystem\Visibility;
 
 /**
  * @group zip
@@ -97,15 +99,15 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 
     public static function scenariosThatCauseWritesToFail(): Generator
     {
-        yield "writing a file fails when writing" => [function (): void {
+        yield 'writing a file fails when writing' => [function (): void {
             static::$archiveProvider->stubbedZipArchive()->failNextWrite();
         }];
 
-        yield "writing a file fails when setting visibility" => [function (): void {
+        yield 'writing a file fails when setting visibility' => [function (): void {
             static::$archiveProvider->stubbedZipArchive()->failWhenSettingVisibility();
         }];
 
-        yield "writing a file fails to get the stream contents" => [function (): void {
+        yield 'writing a file fails to get the stream contents' => [function (): void {
             mock_function('stream_get_contents', false);
         }];
     }
@@ -183,7 +185,7 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 
         $this->expectException(UnableToCreateDirectory::class);
 
-        $this->adapter()->createDirectory('somewhere', new Config);
+        $this->adapter()->createDirectory('somewhere', new Config());
     }
 
     /**
@@ -235,7 +237,7 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 
         $this->expectException(UnableToMoveFile::class);
 
-        $this->adapter()->move('somewhere/here.txt', 'to-here/path.txt', new Config);
+        $this->adapter()->move('somewhere/here.txt', 'to-here/path.txt', new Config());
     }
 
     /**
@@ -249,7 +251,7 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 
         $this->expectException(UnableToCopyFile::class);
 
-        $this->adapter()->copy('here.txt', 'here.txt', new Config);
+        $this->adapter()->copy('here.txt', 'here.txt', new Config());
     }
 
     /**
@@ -324,7 +326,7 @@ abstract class ZipArchiveAdapterTestCase extends FilesystemAdapterTestCase
 
     protected static function removeZipArchive(): void
     {
-        if ( ! file_exists(self::ARCHIVE)) {
+        if (! file_exists(self::ARCHIVE)) {
             return;
         }
 

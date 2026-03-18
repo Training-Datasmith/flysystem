@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace League\Flysystem\AzureBlobStorage;
 
+use function getenv;
+
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase as TestCase;
 use League\Flysystem\Config;
 use League\Flysystem\FilesystemAdapter;
@@ -11,14 +13,13 @@ use League\Flysystem\UnableToSetVisibility;
 use League\Flysystem\Visibility;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use MicrosoftAzure\Storage\Common\Internal\StorageServiceSettings;
-use function getenv;
 
 /**
  * @group azure
  */
 class AzureBlobStorageAdapterTest extends TestCase
 {
-    const CONTAINER_NAME = 'flysystem';
+    public const CONTAINER_NAME = 'flysystem';
 
     protected static function createFilesystemAdapter(): FilesystemAdapter
     {

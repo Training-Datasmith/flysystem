@@ -30,7 +30,7 @@ class ExceptionThrowingFilesystemAdapter implements FilesystemAdapter
         $method = preg_replace('~.+::~', '', $method);
         $key = join('@', [$method, $path]);
 
-        if ( ! array_key_exists($key, $this->stagedExceptions)) {
+        if (! array_key_exists($key, $this->stagedExceptions)) {
             return;
         }
 

@@ -38,7 +38,7 @@ function stream_with_contents(string $contents)
 
 function delete_directory(string $dir): void
 {
-    if ( ! is_dir($dir)) {
+    if (! is_dir($dir)) {
         return;
     }
 

@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace League\Flysystem;
 
+use function array_key_exists;
+
 use DateTimeInterface;
 use Generator;
+
+use function is_array;
+
 use League\Flysystem\UrlGeneration\PrefixPublicUrlGenerator;
 use League\Flysystem\UrlGeneration\PublicUrlGenerator;
 use League\Flysystem\UrlGeneration\ShardedPrefixPublicUrlGenerator;
+
 use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;
 use Throwable;
-
-use function array_key_exists;
-use function is_array;
 
 class Filesystem implements FilesystemOperator
 {
@@ -216,7 +219,7 @@ class Filesystem implements FilesystemOperator
     {
         $config = $this->config->extend($config);
 
-        if ( ! $this->adapter instanceof ChecksumProvider) {
+        if (! $this->adapter instanceof ChecksumProvider) {
             return $this->calculateChecksumFromStream($path, $config);
         }
 
@@ -256,12 +259,12 @@ class Filesystem implements FilesystemOperator
     {
         if (is_resource($contents) === false) {
             throw new InvalidStreamProvided(
-                "Invalid stream provided, expected stream resource, received " . gettype($contents)
+                'Invalid stream provided, expected stream resource, received ' . gettype($contents)
             );
         }
         if ($type = get_resource_type($contents) !== 'stream') {
             throw new InvalidStreamProvided(
-                "Invalid stream provided, expected stream resource, received resource of type " . $type
+                'Invalid stream provided, expected stream resource, received resource of type ' . $type
             );
         }
     }

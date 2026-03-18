@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace League\Flysystem\AdapterTestUtilities;
 
+use League\Flysystem\FilesystemException;
+
 use const PHP_EOL;
 use const STDOUT;
-use League\Flysystem\FilesystemException;
+
 use Throwable;
 
 /**
@@ -77,7 +79,7 @@ trait RetryOnTestException
 
                 return;
             } catch (Throwable $exception) {
-                if ( ! $exception instanceof $this->exceptionTypeToRetryOn) {
+                if (! $exception instanceof $this->exceptionTypeToRetryOn) {
                     throw $exception;
                 }
                 fwrite(STDOUT, 'Retrying ...' . PHP_EOL);

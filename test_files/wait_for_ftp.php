@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use League\Flysystem\Ftp\FtpConnectionOptions;
 use League\Flysystem\Ftp\FtpConnectionProvider;
 
@@ -32,7 +34,7 @@ while (time() - $start < 60) {
     }
 }
 
-if ( ! $connected) {
+if (! $connected) {
     fwrite(STDERR, "Unable to start FTP server.\n");
     exit(1);
 }

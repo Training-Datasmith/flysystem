@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Sabre\DAV\FS\Directory;
 use Sabre\DAV\Server;
 
@@ -9,7 +11,7 @@ error_reporting(E_ALL ^ E_DEPRECATED);
 
 $rootPath = __DIR__ . '/data';
 
-if ( ! is_dir($rootPath)) {
+if (! is_dir($rootPath)) {
     mkdir($rootPath);
 }
 

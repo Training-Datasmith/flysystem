@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace League\Flysystem\Local;
 
-use League\MimeTypeDetection\MimeTypeDetector;
 use function in_array;
+
+use League\MimeTypeDetection\MimeTypeDetector;
 
 class FallbackMimeTypeDetector implements MimeTypeDetector
 {

@@ -44,11 +44,11 @@ function constraint_has_conflict(string $mainConstraint, string $packageConstrai
     return false;
 }
 
-if ( ! isset($argv[1])) {
+if (! isset($argv[1])) {
     panic('No base version provided');
 }
 
-write_line("🔎 Inspecting composer dependency incompatibilities.");
+write_line('🔎 Inspecting composer dependency incompatibilities.');
 
 $mainVersion = $argv[1];
 $filesystem = new Filesystem(new LocalFilesystemAdapter(__DIR__ . '/../'));
@@ -78,7 +78,7 @@ foreach ($otherComposers as $composerFile) {
         }
 
         if ($dependency === 'league/flysystem') {
-            if ( ! Semver::satisfies($mainVersion, $constraint)) {
+            if (! Semver::satisfies($mainVersion, $constraint)) {
                 panic("Composer file {$composerFile} does not allow league/flysystem:{$mainVersion}");
             } else {
                 write_line("Composer file {$composerFile} allows league/flysystem:{$mainVersion} with {$constraint}");
@@ -91,7 +91,7 @@ foreach ($otherComposers as $composerFile) {
             ?? $mainInformation['require-dev'][$dependency]
             ?? null;
 
-        if ( ! is_string($mainDependencyConstraint)) {
+        if (! is_string($mainDependencyConstraint)) {
             panic(
                 "The main composer file does not depend on an adapter dependency.\n" .
                 "Depedency {$dependency} from {$composerFile} is missing."
@@ -110,4 +110,4 @@ foreach ($otherComposers as $composerFile) {
     }
 }
 
-write_line("✅ Composer dependencies are looking fine.");
+write_line('✅ Composer dependencies are looking fine.');

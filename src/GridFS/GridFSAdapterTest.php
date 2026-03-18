@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace League\Flysystem\GridFS;
 
+use function getenv;
+
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase as TestCase;
 use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
@@ -15,7 +17,6 @@ use League\Flysystem\UnableToRetrieveMetadata;
 use League\Flysystem\UnableToWriteFile;
 use MongoDB\Client;
 use MongoDB\Database;
-use function getenv;
 
 /**
  * @group gridfs
