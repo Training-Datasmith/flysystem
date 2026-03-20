@@ -1,8 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\WebDAV;
+declare (strict_types=1);
+namespace League\Flysystem\Web_Dav;
 
 use function array_key_exists;
 use function array_shift;
@@ -10,455 +9,342 @@ use function dirname;
 use function explode;
 use function fclose;
 use function implode;
-
 use League\Flysystem\Config;
-use League\Flysystem\DirectoryAttributes;
-use League\Flysystem\FileAttributes;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\PathPrefixer;
-use League\Flysystem\UnableToCheckDirectoryExistence;
-use League\Flysystem\UnableToCheckFileExistence;
-use League\Flysystem\UnableToCopyFile;
-use League\Flysystem\UnableToCreateDirectory;
-use League\Flysystem\UnableToDeleteDirectory;
-use League\Flysystem\UnableToDeleteFile;
-use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToReadFile;
-use League\Flysystem\UnableToRetrieveMetadata;
-use League\Flysystem\UnableToSetVisibility;
-use League\Flysystem\UnableToWriteFile;
-use League\Flysystem\UrlGeneration\PublicUrlGenerator;
-
+use League\Flysystem\Directory_Attributes;
+use League\Flysystem\File_Attributes;
+use League\Flysystem\Filesystem_Adapter;
+use League\Flysystem\Path_Prefixer;
+use League\Flysystem\Unable_To_Check_Directory_Existence;
+use League\Flysystem\Unable_To_Check_File_Existence;
+use League\Flysystem\Unable_To_Copy_File;
+use League\Flysystem\Unable_To_Create_Directory;
+use League\Flysystem\Unable_To_Delete_Directory;
+use League\Flysystem\Unable_To_Delete_File;
+use League\Flysystem\Unable_To_Move_File;
+use League\Flysystem\Unable_To_Read_File;
+use League\Flysystem\Unable_To_Retrieve_Metadata;
+use League\Flysystem\Unable_To_Set_Visibility;
+use League\Flysystem\Unable_To_Write_File;
+use League\Flysystem\Url_Generation\Public_Url_Generator;
 use function parse_url;
 use function rawurldecode;
-
 use RuntimeException;
 use Sabre\DAV\Client;
-use Sabre\DAV\Xml\Property\ResourceType;
-use Sabre\HTTP\ClientHttpException;
+use Sabre\DAV\Xml\Property\Resource_Type;
+use Sabre\HTTP\Client_Http_Exception;
 use Sabre\HTTP\Request;
 use Throwable;
-
-class WebDAVAdapter implements FilesystemAdapter, PublicUrlGenerator
+class Web_Dav_Adapter implements Filesystem_Adapter, Public_Url_Generator
 {
     public const ON_VISIBILITY_THROW_ERROR = 'throw';
     public const ON_VISIBILITY_IGNORE = 'ignore';
-    public const FIND_PROPERTIES = [
-        '{DAV:}displayname',
-        '{DAV:}getcontentlength',
-        '{DAV:}getcontenttype',
-        '{DAV:}getlastmodified',
-        '{DAV:}iscollection',
-        '{DAV:}resourcetype',
-    ];
-
-    private PathPrefixer $prefixer;
-
-    public function __construct(
-        private Client $client,
-        string $prefix = '',
-        private string $visibilityHandling = self::ON_VISIBILITY_THROW_ERROR,
-        private bool $manualCopy = false,
-        private bool $manualMove = false,
-    ) {
-        $this->prefixer = new PathPrefixer($prefix);
-    }
-
-    public function fileExists(string $path): bool
+    public const FIND_PROPERTIES = ['{DAV:}displayname', '{DAV:}getcontentlength', '{DAV:}getcontenttype', '{DAV:}getlastmodified', '{DAV:}iscollection', '{DAV:}resourcetype'];
+    private Path_Prefixer $prefixer;
+    public function __construct(private Client $client, string $prefix = '', private string $visibility_handling = self::ON_VISIBILITY_THROW_ERROR, private bool $manual_copy = false, private bool $manual_move = false)
     {
-        $location = $this->encodePath($this->prefixer->prefixPath($path));
-
+        $this->prefixer = new Path_Prefixer($prefix);
+    }
+    public function file_exists(string $path): bool
+    {
+        $location = $this->encode_path($this->prefixer->prefix_path($path));
         try {
-            $properties = $this->client->propFind($location, ['{DAV:}resourcetype', '{DAV:}iscollection']);
-
-            return ! $this->propsIsDirectory($properties);
+            $properties = $this->client->prop_find($location, ['{DAV:}resourcetype', '{DAV:}iscollection']);
+            return !$this->props_is_directory($properties);
         } catch (Throwable $exception) {
-            if ($exception instanceof ClientHttpException && $exception->getHttpStatus() === 404) {
+            if ($exception instanceof Client_Http_Exception && $exception->get_http_status() === 404) {
                 return false;
             }
-
-            throw UnableToCheckFileExistence::forLocation($path, $exception);
+            throw Unable_To_Check_File_Existence::for_location($path, $exception);
         }
     }
-
-    protected function encodePath(string $path): string
+    protected function encode_path(string $path): string
     {
         $parts = explode('/', $path);
-
         foreach ($parts as $i => $part) {
             $parts[$i] = rawurlencode($part);
         }
-
         return implode('/', $parts);
     }
-
-    public function directoryExists(string $path): bool
+    public function directory_exists(string $path): bool
     {
-        $location = $this->encodePath($this->prefixer->prefixPath($path));
-
+        $location = $this->encode_path($this->prefixer->prefix_path($path));
         try {
-            $properties = $this->client->propFind($location, ['{DAV:}resourcetype', '{DAV:}iscollection']);
-
-            return $this->propsIsDirectory($properties);
+            $properties = $this->client->prop_find($location, ['{DAV:}resourcetype', '{DAV:}iscollection']);
+            return $this->props_is_directory($properties);
         } catch (Throwable $exception) {
-            if ($exception instanceof ClientHttpException && $exception->getHttpStatus() === 404) {
+            if ($exception instanceof Client_Http_Exception && $exception->get_http_status() === 404) {
                 return false;
             }
-
-            throw UnableToCheckDirectoryExistence::forLocation($path, $exception);
+            throw Unable_To_Check_Directory_Existence::for_location($path, $exception);
         }
     }
-
     public function write(string $path, string $contents, Config $config): void
     {
         $this->upload($path, $contents);
     }
-
-    public function writeStream(string $path, $contents, Config $config): void
+    public function write_stream(string $path, $contents, Config $config): void
     {
         $this->upload($path, $contents);
     }
-
     /**
      * @param resource|string $contents
      */
     private function upload(string $path, mixed $contents): void
     {
-        $this->createParentDirFor($path);
-        $location = $this->encodePath($this->prefixer->prefixPath($path));
-
+        $this->create_parent_dir_for($path);
+        $location = $this->encode_path($this->prefixer->prefix_path($path));
         try {
             $response = $this->client->request('PUT', $location, $contents);
-            $statusCode = $response['statusCode'];
-
-            if ($statusCode < 200 || $statusCode >= 300) {
-                throw new RuntimeException('Unexpected status code received: ' . $statusCode);
+            $status_code = $response['statusCode'];
+            if ($status_code < 200 || $status_code >= 300) {
+                throw new RuntimeException('Unexpected status code received: ' . $status_code);
             }
         } catch (Throwable $exception) {
-            throw UnableToWriteFile::atLocation($path, $exception->getMessage(), $exception);
+            throw Unable_To_Write_File::at_location($path, $exception->get_message(), $exception);
         }
     }
-
     public function read(string $path): string
     {
-        $location = $this->encodePath($this->prefixer->prefixPath($path));
-
+        $location = $this->encode_path($this->prefixer->prefix_path($path));
         try {
             $response = $this->client->request('GET', $location);
-
             if ($response['statusCode'] !== 200) {
                 throw new RuntimeException('Unexpected response code for GET: ' . $response['statusCode']);
             }
-
             return $response['body'];
         } catch (Throwable $exception) {
-            throw UnableToReadFile::fromLocation($path, $exception->getMessage(), $exception);
+            throw Unable_To_Read_File::from_location($path, $exception->get_message(), $exception);
         }
     }
-
-    public function readStream(string $path)
+    public function read_stream(string $path)
     {
-        $location = $this->encodePath($this->prefixer->prefixPath($path));
-
+        $location = $this->encode_path($this->prefixer->prefix_path($path));
         try {
-            $url = $this->client->getAbsoluteUrl($location);
+            $url = $this->client->get_absolute_url($location);
             $request = new Request('GET', $url);
             $response = $this->client->send($request);
-            $status = $response->getStatus();
-
+            $status = $response->get_status();
             if ($status !== 200) {
                 throw new RuntimeException('Unexpected response code for GET: ' . $status);
             }
-
-            return $response->getBodyAsStream();
+            return $response->get_body_as_stream();
         } catch (Throwable $exception) {
-            throw UnableToReadFile::fromLocation($path, $exception->getMessage(), $exception);
+            throw Unable_To_Read_File::from_location($path, $exception->get_message(), $exception);
         }
     }
-
     public function delete(string $path): void
     {
-        $location = $this->encodePath($this->prefixer->prefixPath($path));
-
+        $location = $this->encode_path($this->prefixer->prefix_path($path));
         try {
             $response = $this->client->request('DELETE', $location);
-            $statusCode = $response['statusCode'];
-
-            if ($statusCode !== 404 && ($statusCode < 200 || $statusCode >= 300)) {
-                throw new RuntimeException('Unexpected status code received while deleting file: ' . $statusCode);
+            $status_code = $response['statusCode'];
+            if ($status_code !== 404 && ($status_code < 200 || $status_code >= 300)) {
+                throw new RuntimeException('Unexpected status code received while deleting file: ' . $status_code);
             }
         } catch (Throwable $exception) {
-            if (! ($exception instanceof ClientHttpException && $exception->getCode() === 404)) {
-                throw UnableToDeleteFile::atLocation($path, $exception->getMessage(), $exception);
+            if (!($exception instanceof Client_Http_Exception && $exception->get_code() === 404)) {
+                throw Unable_To_Delete_File::at_location($path, $exception->get_message(), $exception);
             }
         }
     }
-
-    public function deleteDirectory(string $path): void
+    public function delete_directory(string $path): void
     {
-        $location = $this->encodePath($this->prefixer->prefixDirectoryPath($path));
-
+        $location = $this->encode_path($this->prefixer->prefix_directory_path($path));
         try {
-            $statusCode = $this->client->request('DELETE', $location)['statusCode'];
-
-            if ($statusCode !== 404 && ($statusCode < 200 || $statusCode >= 300)) {
-                throw new RuntimeException('Unexpected status code received while deleting file: ' . $statusCode);
+            $status_code = $this->client->request('DELETE', $location)['statusCode'];
+            if ($status_code !== 404 && ($status_code < 200 || $status_code >= 300)) {
+                throw new RuntimeException('Unexpected status code received while deleting file: ' . $status_code);
             }
         } catch (Throwable $exception) {
-            if (! ($exception instanceof ClientHttpException && $exception->getCode() === 404)) {
-                throw UnableToDeleteDirectory::atLocation($path, $exception->getMessage(), $exception);
+            if (!($exception instanceof Client_Http_Exception && $exception->get_code() === 404)) {
+                throw Unable_To_Delete_Directory::at_location($path, $exception->get_message(), $exception);
             }
         }
     }
-
-    public function createDirectory(string $path, Config $config): void
+    public function create_directory(string $path, Config $config): void
     {
-        $parts = explode('/', $this->prefixer->prefixDirectoryPath($path));
-        $directoryParts = [];
-
+        $parts = explode('/', $this->prefixer->prefix_directory_path($path));
+        $directory_parts = [];
         foreach ($parts as $directory) {
             if ($directory === '.' || $directory === '') {
                 return;
             }
-
-            $directoryParts[] = $directory;
-            $directoryPath = implode('/', $directoryParts);
-            $location = $this->encodePath($directoryPath) . '/';
-
-            if ($this->directoryExists($this->prefixer->stripDirectoryPrefix($directoryPath))) {
+            $directory_parts[] = $directory;
+            $directory_path = implode('/', $directory_parts);
+            $location = $this->encode_path($directory_path) . '/';
+            if ($this->directory_exists($this->prefixer->strip_directory_prefix($directory_path))) {
                 continue;
             }
-
             try {
                 $response = $this->client->request('MKCOL', $location);
             } catch (Throwable $exception) {
-                throw UnableToCreateDirectory::dueToFailure($path, $exception);
+                throw Unable_To_Create_Directory::due_to_failure($path, $exception);
             }
-
             if ($response['statusCode'] === 405) {
                 continue;
             }
-
             if ($response['statusCode'] !== 201) {
-                throw UnableToCreateDirectory::atLocation($path, 'Failed to create directory at: ' . $location);
+                throw Unable_To_Create_Directory::at_location($path, 'Failed to create directory at: ' . $location);
             }
         }
     }
-
-    public function setVisibility(string $path, string $visibility): void
+    public function set_visibility(string $path, string $visibility): void
     {
-        if ($this->visibilityHandling === self::ON_VISIBILITY_THROW_ERROR) {
-            throw UnableToSetVisibility::atLocation($path, 'WebDAV does not support this operation.');
+        if ($this->visibility_handling === self::ON_VISIBILITY_THROW_ERROR) {
+            throw Unable_To_Set_Visibility::at_location($path, 'WebDAV does not support this operation.');
         }
     }
-
-    public function visibility(string $path): FileAttributes
+    public function visibility(string $path): File_Attributes
     {
-        throw UnableToRetrieveMetadata::visibility($path, 'WebDAV does not support this operation.');
+        throw Unable_To_Retrieve_Metadata::visibility($path, 'WebDAV does not support this operation.');
     }
-
-    public function mimeType(string $path): FileAttributes
+    public function mime_type(string $path): File_Attributes
     {
-        $mimeType = (string) $this->propFind($path, 'mime_type', '{DAV:}getcontenttype');
-
-        return new FileAttributes($path, mimeType: $mimeType);
+        $mime_type = (string) $this->prop_find($path, 'mime_type', '{DAV:}getcontenttype');
+        return new File_Attributes($path, mimeType: $mime_type);
     }
-
-    public function lastModified(string $path): FileAttributes
+    public function last_modified(string $path): File_Attributes
     {
-        $lastModified = $this->propFind($path, 'last_modified', '{DAV:}getlastmodified');
-
-        return new FileAttributes($path, lastModified: strtotime($lastModified));
+        $last_modified = $this->prop_find($path, 'last_modified', '{DAV:}getlastmodified');
+        return new File_Attributes($path, lastModified: strtotime($last_modified));
     }
-
-    public function fileSize(string $path): FileAttributes
+    public function file_size(string $path): File_Attributes
     {
-        $fileSize = (int) $this->propFind($path, 'file_size', '{DAV:}getcontentlength');
-
-        return new FileAttributes($path, fileSize: $fileSize);
+        $file_size = (int) $this->prop_find($path, 'file_size', '{DAV:}getcontentlength');
+        return new File_Attributes($path, fileSize: $file_size);
     }
-
-    public function listContents(string $path, bool $deep): iterable
+    public function list_contents(string $path, bool $deep): iterable
     {
-        $location = $this->encodePath($this->prefixer->prefixDirectoryPath($path));
-        $response = $this->client->propFind($location, self::FIND_PROPERTIES, 1);
-
+        $location = $this->encode_path($this->prefixer->prefix_directory_path($path));
+        $response = $this->client->prop_find($location, self::FIND_PROPERTIES, 1);
         // This is the directory itself, the files are subsequent entries.
         array_shift($response);
-
         foreach ($response as $path => $object) {
             $path = (string) parse_url(rawurldecode($path), PHP_URL_PATH);
-            $path = $this->prefixer->stripPrefix($path);
-            $object = $this->normalizeObject($object);
-
-            if ($this->propsIsDirectory($object)) {
-                yield new DirectoryAttributes($path, lastModified: $object['last_modified'] ?? null);
-
-                if (! $deep) {
+            $path = $this->prefixer->strip_prefix($path);
+            $object = $this->normalize_object($object);
+            if ($this->props_is_directory($object)) {
+                yield new Directory_Attributes($path, lastModified: $object['last_modified'] ?? null);
+                if (!$deep) {
                     continue;
                 }
-
-                foreach ($this->listContents($path, true) as $child) {
+                foreach ($this->list_contents($path, true) as $child) {
                     yield $child;
                 }
             } else {
-                yield new FileAttributes(
-                    $path,
-                    fileSize:     $object['file_size'] ?? null,
-                    lastModified: $object['last_modified'] ?? null,
-                    mimeType:     $object['mime_type'] ?? null,
-                );
+                yield new File_Attributes($path, fileSize: $object['file_size'] ?? null, lastModified: $object['last_modified'] ?? null, mimeType: $object['mime_type'] ?? null);
             }
         }
     }
-
-    private function normalizeObject(array $object): array
+    private function normalize_object(array $object): array
     {
-        $mapping = [
-            '{DAV:}getcontentlength' => 'file_size',
-            '{DAV:}getcontenttype' => 'mime_type',
-            'content-length' => 'file_size',
-            'content-type' => 'mime_type',
-        ];
-
+        $mapping = ['{DAV:}getcontentlength' => 'file_size', '{DAV:}getcontenttype' => 'mime_type', 'content-length' => 'file_size', 'content-type' => 'mime_type'];
         foreach ($mapping as $from => $to) {
             if (array_key_exists($from, $object)) {
                 $object[$to] = $object[$from];
             }
         }
-
         array_key_exists('file_size', $object) && $object['file_size'] = (int) $object['file_size'];
-
         if (array_key_exists('{DAV:}getlastmodified', $object)) {
             $object['last_modified'] = strtotime($object['{DAV:}getlastmodified']);
         }
-
         return $object;
     }
-
     public function move(string $source, string $destination, Config $config): void
     {
         if ($source === $destination) {
             return;
         }
-
-        if ($this->manualMove) {
-            $this->manualMove($source, $destination);
-
+        if ($this->manual_move) {
+            $this->manual_move($source, $destination);
             return;
         }
-
-        $this->createParentDirFor($destination);
-        $location = $this->encodePath($this->prefixer->prefixPath($source));
-        $newLocation = $this->encodePath($this->prefixer->prefixPath($destination));
-
+        $this->create_parent_dir_for($destination);
+        $location = $this->encode_path($this->prefixer->prefix_path($source));
+        $new_location = $this->encode_path($this->prefixer->prefix_path($destination));
         try {
-            $response = $this->client->request('MOVE', $location, null, [
-                'Destination' => $this->client->getAbsoluteUrl($newLocation),
-            ]);
-
+            $response = $this->client->request('MOVE', $location, null, ['Destination' => $this->client->get_absolute_url($new_location)]);
             if ($response['statusCode'] < 200 || $response['statusCode'] >= 300) {
                 throw new RuntimeException('MOVE command returned unexpected status code: ' . $response['statusCode'] . "\n{$response['body']}");
             }
         } catch (Throwable $e) {
-            throw UnableToMoveFile::fromLocationTo($source, $destination, $e);
+            throw Unable_To_Move_File::from_location_to($source, $destination, $e);
         }
     }
-
-    private function manualMove(string $source, string $destination): void
+    private function manual_move(string $source, string $destination): void
     {
         try {
-            $handle = $this->readStream($source);
-            $this->writeStream($destination, $handle, new Config());
+            $handle = $this->read_stream($source);
+            $this->write_stream($destination, $handle, new Config());
             @fclose($handle);
             $this->delete($source);
         } catch (Throwable $exception) {
-            throw UnableToMoveFile::fromLocationTo($source, $destination, $exception);
+            throw Unable_To_Move_File::from_location_to($source, $destination, $exception);
         }
     }
-
     public function copy(string $source, string $destination, Config $config): void
     {
         if ($source === $destination) {
             return;
         }
-
-        if ($this->manualCopy) {
-            $this->manualCopy($source, $destination);
-
+        if ($this->manual_copy) {
+            $this->manual_copy($source, $destination);
             return;
         }
-
-        $this->createParentDirFor($destination);
-        $location = $this->encodePath($this->prefixer->prefixPath($source));
-        $newLocation = $this->encodePath($this->prefixer->prefixPath($destination));
-
+        $this->create_parent_dir_for($destination);
+        $location = $this->encode_path($this->prefixer->prefix_path($source));
+        $new_location = $this->encode_path($this->prefixer->prefix_path($destination));
         try {
-            $response = $this->client->request('COPY', $location, null, [
-                'Destination' => $this->client->getAbsoluteUrl($newLocation),
-            ]);
-
+            $response = $this->client->request('COPY', $location, null, ['Destination' => $this->client->get_absolute_url($new_location)]);
             if ($response['statusCode'] < 200 || $response['statusCode'] >= 300) {
                 throw new RuntimeException('COPY command returned unexpected status code: ' . $response['statusCode']);
             }
         } catch (Throwable $e) {
-            throw UnableToCopyFile::fromLocationTo($source, $destination, $e);
+            throw Unable_To_Copy_File::from_location_to($source, $destination, $e);
         }
     }
-
-    private function manualCopy(string $source, string $destination): void
+    private function manual_copy(string $source, string $destination): void
     {
         try {
-            $handle = $this->readStream($source);
-            $this->writeStream($destination, $handle, new Config());
+            $handle = $this->read_stream($source);
+            $this->write_stream($destination, $handle, new Config());
             @fclose($handle);
         } catch (Throwable $exception) {
-            throw UnableToCopyFile::fromLocationTo($source, $destination, $exception);
+            throw Unable_To_Copy_File::from_location_to($source, $destination, $exception);
         }
     }
-
-    private function propsIsDirectory(array $properties): bool
+    private function props_is_directory(array $properties): bool
     {
         if (isset($properties['{DAV:}resourcetype'])) {
             /** @var ResourceType $resourceType */
-            $resourceType = $properties['{DAV:}resourcetype'];
-
-            return $resourceType->is('{DAV:}collection');
+            $resource_type = $properties['{DAV:}resourcetype'];
+            return $resource_type->is('{DAV:}collection');
         }
-
         return isset($properties['{DAV:}iscollection']) && $properties['{DAV:}iscollection'] === '1';
     }
-
-    private function createParentDirFor(string $path): void
+    private function create_parent_dir_for(string $path): void
     {
         $dirname = dirname($path);
-
-        if ($this->directoryExists($dirname)) {
+        if ($this->directory_exists($dirname)) {
             return;
         }
-
-        $this->createDirectory($dirname, new Config());
+        $this->create_directory($dirname, new Config());
     }
-
-    private function propFind(string $path, string $section, string $property): mixed
+    private function prop_find(string $path, string $section, string $property): mixed
     {
-        $location = $this->encodePath($this->prefixer->prefixPath($path));
-
+        $location = $this->encode_path($this->prefixer->prefix_path($path));
         try {
-            $result = $this->client->propFind($location, [$property]);
-
-            if (! array_key_exists($property, $result)) {
+            $result = $this->client->prop_find($location, [$property]);
+            if (!array_key_exists($property, $result)) {
                 throw new RuntimeException('Invalid response, missing key: ' . $property);
             }
-
             return $result[$property];
         } catch (Throwable $exception) {
-            throw UnableToRetrieveMetadata::create($path, $section, $exception->getMessage(), $exception);
+            throw Unable_To_Retrieve_Metadata::create($path, $section, $exception->get_message(), $exception);
         }
     }
-
-    public function publicUrl(string $path, Config $config): string
+    public function public_url(string $path, Config $config): string
     {
-        return $this->client->getAbsoluteUrl($this->encodePath($this->prefixer->prefixPath($path)));
+        return $this->client->get_absolute_url($this->encode_path($this->prefixer->prefix_path($path)));
     }
 }

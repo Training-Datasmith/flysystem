@@ -1,42 +1,33 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV3;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V3;
 
 use phpseclib3\Net\SFTP;
 use Throwable;
-
-class SimpleConnectivityChecker implements ConnectivityChecker
+class Simple_Connectivity_Checker implements Connectivity_Checker
 {
-    public function __construct(
-        private bool $usePing = false,
-    ) {
-    }
-
-    public static function create(): SimpleConnectivityChecker
+    public function __construct(private bool $use_ping = false)
     {
-        return new SimpleConnectivityChecker();
     }
-
-    public function withUsingPing(bool $usePing): SimpleConnectivityChecker
+    public static function create(): Simple_Connectivity_Checker
+    {
+        return new Simple_Connectivity_Checker();
+    }
+    public function with_using_ping(bool $use_ping): Simple_Connectivity_Checker
     {
         $clone = clone $this;
-        $clone->usePing = $usePing;
-
+        $clone->use_ping = $use_ping;
         return $clone;
     }
-
-    public function isConnected(SFTP $connection): bool
+    public function is_connected(SFTP $connection): bool
     {
-        if (! $connection->isConnected()) {
+        if (!$connection->is_connected()) {
             return false;
         }
-
-        if (! $this->usePing) {
+        if (!$this->use_ping) {
             return true;
         }
-
         try {
             return $connection->ping();
         } catch (Throwable) {

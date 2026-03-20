@@ -1,81 +1,56 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Unix_Visibility;
 
-namespace League\Flysystem\UnixVisibility;
-
-use League\Flysystem\PortableVisibilityGuard;
+use League\Flysystem\Portable_Visibility_Guard;
 use League\Flysystem\Visibility;
-
-class PortableVisibilityConverter implements VisibilityConverter
+class Portable_Visibility_Converter implements Visibility_Converter
 {
-    public function __construct(
-        private int $filePublic = 0644,
-        private int $filePrivate = 0600,
-        private int $directoryPublic = 0755,
-        private int $directoryPrivate = 0700,
-        private string $defaultForDirectories = Visibility::PRIVATE
-    ) {
-    }
-
-    public function forFile(string $visibility): int
+    public function __construct(private int $file_public = 0644, private int $file_private = 0600, private int $directory_public = 0755, private int $directory_private = 0700, private string $default_for_directories = Visibility::PRIVATE)
     {
-        PortableVisibilityGuard::guardAgainstInvalidInput($visibility);
-
-        return $visibility === Visibility::PUBLIC
-            ? $this->filePublic
-            : $this->filePrivate;
     }
-
-    public function forDirectory(string $visibility): int
+    public function for_file(string $visibility): int
     {
-        PortableVisibilityGuard::guardAgainstInvalidInput($visibility);
-
-        return $visibility === Visibility::PUBLIC
-            ? $this->directoryPublic
-            : $this->directoryPrivate;
+        Portable_Visibility_Guard::guard_against_invalid_input($visibility);
+        return $visibility === Visibility::PUBLIC ? $this->file_public : $this->file_private;
     }
-
-    public function inverseForFile(int $visibility): string
+    public function for_directory(string $visibility): int
     {
-        if ($visibility === $this->filePublic) {
+        Portable_Visibility_Guard::guard_against_invalid_input($visibility);
+        return $visibility === Visibility::PUBLIC ? $this->directory_public : $this->directory_private;
+    }
+    public function inverse_for_file(int $visibility): string
+    {
+        if ($visibility === $this->file_public) {
             return Visibility::PUBLIC;
         }
-        if ($visibility === $this->filePrivate) {
+        if ($visibility === $this->file_private) {
             return Visibility::PRIVATE;
         }
-
-        return Visibility::PUBLIC; // default
+        return Visibility::PUBLIC;
+        // default
     }
-
-    public function inverseForDirectory(int $visibility): string
+    public function inverse_for_directory(int $visibility): string
     {
-        if ($visibility === $this->directoryPublic) {
+        if ($visibility === $this->directory_public) {
             return Visibility::PUBLIC;
         }
-        if ($visibility === $this->directoryPrivate) {
+        if ($visibility === $this->directory_private) {
             return Visibility::PRIVATE;
         }
-
-        return Visibility::PUBLIC; // default
+        return Visibility::PUBLIC;
+        // default
     }
-
-    public function defaultForDirectories(): int
+    public function default_for_directories(): int
     {
-        return $this->defaultForDirectories === Visibility::PUBLIC ? $this->directoryPublic : $this->directoryPrivate;
+        return $this->default_for_directories === Visibility::PUBLIC ? $this->directory_public : $this->directory_private;
     }
-
     /**
      * @param array<mixed>  $permissionMap
      */
-    public static function fromArray(array $permissionMap, string $defaultForDirectories = Visibility::PRIVATE): PortableVisibilityConverter
+    public static function from_array(array $permission_map, string $default_for_directories = Visibility::PRIVATE): Portable_Visibility_Converter
     {
-        return new PortableVisibilityConverter(
-            $permissionMap['file']['public'] ?? 0644,
-            $permissionMap['file']['private'] ?? 0600,
-            $permissionMap['dir']['public'] ?? 0755,
-            $permissionMap['dir']['private'] ?? 0700,
-            $defaultForDirectories
-        );
+        return new Portable_Visibility_Converter($permission_map['file']['public'] ?? 0644, $permission_map['file']['private'] ?? 0600, $permission_map['dir']['public'] ?? 0755, $permission_map['dir']['private'] ?? 0700, $default_for_directories);
     }
 }

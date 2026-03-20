@@ -1,20 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
-use PHPUnit\Framework\TestCase;
-
-class WhitespacePathNormalizerTest extends TestCase
+use Php_Unit\Framework\Test_Case;
+class Whitespace_Path_Normalizer_Test extends Test_Case
 {
-    private \League\Flysystem\WhitespacePathNormalizer $normalizer;
-
-    protected function setUp(): void
+    private \League\Flysystem\Whitespace_Path_Normalizer $normalizer;
+    protected function set_up(): void
     {
-        $this->normalizer = new WhitespacePathNormalizer();
+        $this->normalizer = new Whitespace_Path_Normalizer();
     }
-
     /**
      * @test
      *
@@ -22,40 +18,18 @@ class WhitespacePathNormalizerTest extends TestCase
      */
     public function path_normalizing(string $input, string $expected): void
     {
-        $result = $this->normalizer->normalizePath($input);
-        $double = $this->normalizer->normalizePath($this->normalizer->normalizePath($input));
-        $this->assertEquals($expected, $result);
-        $this->assertEquals($expected, $double);
+        $result = $this->normalizer->normalize_path($input);
+        $double = $this->normalizer->normalize_path($this->normalizer->normalize_path($input));
+        $this->assert_equals($expected, $result);
+        $this->assert_equals($expected, $double);
     }
-
     /**
      * @return array<array<string>>
      */
-    public static function pathProvider(): array
+    public static function path_provider(): array
     {
-        return [
-            ['.', ''],
-            ['/path/to/dir/.', 'path/to/dir'],
-            ['/dirname/', 'dirname'],
-            ['dirname/..', ''],
-            ['dirname/../', ''],
-            ['dirname./', 'dirname.'],
-            ['dirname/./', 'dirname'],
-            ['dirname/.', 'dirname'],
-            ['./dir/../././', ''],
-            ['/something/deep/../../dirname', 'dirname'],
-            ['00004869/files/other/10-75..stl', '00004869/files/other/10-75..stl'],
-            ['/dirname//subdir///subsubdir', 'dirname/subdir/subsubdir'],
-            ['\dirname\\\\subdir\\\\\\subsubdir', 'dirname/subdir/subsubdir'],
-            ['\\\\some\shared\\\\drive', 'some/shared/drive'],
-            ['C:\dirname\\\\subdir\\\\\\subsubdir', 'C:/dirname/subdir/subsubdir'],
-            ['C:\\\\dirname\subdir\\\\subsubdir', 'C:/dirname/subdir/subsubdir'],
-            ['example/path/..txt', 'example/path/..txt'],
-            ['\\example\\path.txt', 'example/path.txt'],
-            ['\\example\\..\\path.txt', 'path.txt'],
-        ];
+        return [['.', ''], ['/path/to/dir/.', 'path/to/dir'], ['/dirname/', 'dirname'], ['dirname/..', ''], ['dirname/../', ''], ['dirname./', 'dirname.'], ['dirname/./', 'dirname'], ['dirname/.', 'dirname'], ['./dir/../././', ''], ['/something/deep/../../dirname', 'dirname'], ['00004869/files/other/10-75..stl', '00004869/files/other/10-75..stl'], ['/dirname//subdir///subsubdir', 'dirname/subdir/subsubdir'], ['\dirname\\\\subdir\\\\\\subsubdir', 'dirname/subdir/subsubdir'], ['\\\\some\shared\\\\drive', 'some/shared/drive'], ['C:\dirname\\\\subdir\\\\\\subsubdir', 'C:/dirname/subdir/subsubdir'], ['C:\\\\dirname\subdir\\\\subsubdir', 'C:/dirname/subdir/subsubdir'], ['example/path/..txt', 'example/path/..txt'], ['\example\path.txt', 'example/path.txt'], ['\example\..\path.txt', 'path.txt']];
     }
-
     /**
      * @test
      *
@@ -63,10 +37,9 @@ class WhitespacePathNormalizerTest extends TestCase
      */
     public function guarding_against_path_traversal(string $input): void
     {
-        $this->expectException(PathTraversalDetected::class);
-        $this->normalizer->normalizePath($input);
+        $this->expect_exception(Path_Traversal_Detected::class);
+        $this->normalizer->normalize_path($input);
     }
-
     /**
      * @test
      *
@@ -74,26 +47,18 @@ class WhitespacePathNormalizerTest extends TestCase
      */
     public function rejecting_funky_whitespace(string $path): void
     {
-        self::expectException(CorruptedPathDetected::class);
-        $this->normalizer->normalizePath($path);
+        self::expect_exception(Corrupted_Path_Detected::class);
+        $this->normalizer->normalize_path($path);
     }
-
-    public static function dpFunkyWhitespacePaths(): iterable
+    public static function dp_funky_whitespace_paths(): iterable
     {
-        return [["some\0/path.txt"], ["s\x09i.php"]];
+        return [["some\x00/path.txt"], ["s\ti.php"]];
     }
-
     /**
      * @return array<array<string>>
      */
-    public static function invalidPathProvider(): array
+    public static function invalid_path_provider(): array
     {
-        return [
-            ['something/../../../hehe'],
-            ['/something/../../..'],
-            ['..'],
-            ['something\\..\\..'],
-            ['\\something\\..\\..\\dirname'],
-        ];
+        return [['something/../../../hehe'], ['/something/../../..'], ['..'], ['something\..\..'], ['\something\..\..\dirname']];
     }
 }

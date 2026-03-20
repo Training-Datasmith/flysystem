@@ -1,95 +1,77 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
-abstract class DecoratedAdapter implements FilesystemAdapter
+abstract class Decorated_Adapter implements Filesystem_Adapter
 {
-    public function __construct(protected FilesystemAdapter $adapter)
+    public function __construct(protected Filesystem_Adapter $adapter)
     {
     }
-
-    public function fileExists(string $path): bool
+    public function file_exists(string $path): bool
     {
-        return $this->adapter->fileExists($path);
+        return $this->adapter->file_exists($path);
     }
-
-    public function directoryExists(string $path): bool
+    public function directory_exists(string $path): bool
     {
-        return $this->adapter->directoryExists($path);
+        return $this->adapter->directory_exists($path);
     }
-
     public function write(string $path, string $contents, Config $config): void
     {
         $this->adapter->write($path, $contents, $config);
     }
-
-    public function writeStream(string $path, $contents, Config $config): void
+    public function write_stream(string $path, $contents, Config $config): void
     {
-        $this->adapter->writeStream($path, $contents, $config);
+        $this->adapter->write_stream($path, $contents, $config);
     }
-
     public function read(string $path): string
     {
         return $this->adapter->read($path);
     }
-
-    public function readStream(string $path)
+    public function read_stream(string $path)
     {
-        return $this->adapter->readStream($path);
+        return $this->adapter->read_stream($path);
     }
-
     public function delete(string $path): void
     {
         $this->adapter->delete($path);
     }
-
-    public function deleteDirectory(string $path): void
+    public function delete_directory(string $path): void
     {
-        $this->adapter->deleteDirectory($path);
+        $this->adapter->delete_directory($path);
     }
-
-    public function createDirectory(string $path, Config $config): void
+    public function create_directory(string $path, Config $config): void
     {
-        $this->adapter->createDirectory($path, $config);
+        $this->adapter->create_directory($path, $config);
     }
-
-    public function setVisibility(string $path, string $visibility): void
+    public function set_visibility(string $path, string $visibility): void
     {
-        $this->adapter->setVisibility($path, $visibility);
+        $this->adapter->set_visibility($path, $visibility);
     }
-
-    public function visibility(string $path): FileAttributes
+    public function visibility(string $path): File_Attributes
     {
         return $this->adapter->visibility($path);
     }
-
-    public function mimeType(string $path): FileAttributes
+    public function mime_type(string $path): File_Attributes
     {
-        return $this->adapter->mimeType($path);
+        return $this->adapter->mime_type($path);
     }
-
-    public function lastModified(string $path): FileAttributes
+    public function last_modified(string $path): File_Attributes
     {
-        return $this->adapter->lastModified($path);
+        return $this->adapter->last_modified($path);
     }
-
-    public function fileSize(string $path): FileAttributes
+    public function file_size(string $path): File_Attributes
     {
-        return $this->adapter->fileSize($path);
+        return $this->adapter->file_size($path);
     }
-
-    public function listContents(string $path, bool $deep): iterable
+    public function list_contents(string $path, bool $deep): iterable
     {
-        return $this->adapter->listContents($path, $deep);
+        return $this->adapter->list_contents($path, $deep);
     }
-
     public function move(string $source, string $destination, Config $config): void
     {
         $this->adapter->move($source, $destination, $config);
     }
-
     public function copy(string $source, string $destination, Config $config): void
     {
         $this->adapter->copy($source, $destination, $config);

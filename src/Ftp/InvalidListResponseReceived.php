@@ -1,12 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem\Ftp;
 
-use League\Flysystem\FilesystemException;
+use League\Flysystem\Filesystem_Exception;
 use RuntimeException;
-
-class InvalidListResponseReceived extends RuntimeException implements FilesystemException
+class Invalid_List_Response_Received extends RuntimeException implements Filesystem_Exception
 {
 }

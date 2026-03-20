@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Google_Cloud_Storage;
 
-namespace League\Flysystem\GoogleCloudStorage;
-
-use Google\Cloud\Storage\StorageObject;
-
-interface VisibilityHandler
+use Google\Cloud\Storage\Storage_Object;
+interface Visibility_Handler
 {
-    public function setVisibility(StorageObject $object, string $visibility): void;
-    public function determineVisibility(StorageObject $object): string;
-    public function visibilityToPredefinedAcl(string $visibility): string;
+    public function set_visibility(Storage_Object $object, string $visibility): void;
+    public function determine_visibility(Storage_Object $object): string;
+    public function visibility_to_predefined_acl(string $visibility): string;
 }

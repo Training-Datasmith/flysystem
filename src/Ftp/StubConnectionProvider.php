@@ -1,19 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem\Ftp;
 
-class StubConnectionProvider implements ConnectionProvider
+class Stub_Connection_Provider implements Connection_Provider
 {
     public mixed $connection;
-
-    public function __construct(private ConnectionProvider $provider)
+    public function __construct(private Connection_Provider $provider)
     {
     }
-
-    public function createConnection(FtpConnectionOptions $options)
+    public function create_connection(Ftp_Connection_Options $options)
     {
-        return $this->connection = $this->provider->createConnection($options);
+        return $this->connection = $this->provider->create_connection($options);
     }
 }

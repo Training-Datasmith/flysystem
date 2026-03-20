@@ -1,29 +1,25 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV2;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V2;
 
 use phpseclib\Net\SFTP;
-
 /**
  * @internal This is only used for testing purposes.
  *
  * @deprecated The "League\Flysystem\PhpseclibV2\SftpStub" class is deprecated since Flysystem 3.0, use "League\Flysystem\PhpseclibV3\SftpStub" instead.
  */
-class SftpStub extends SFTP
+class Sftp_Stub extends SFTP
 {
     /**
      * @var array<string,bool>
      */
-    private array $tripWires = [];
-
-    public function failOnChmod(string $filename): void
+    private array $trip_wires = [];
+    public function fail_on_chmod(string $filename): void
     {
-        $key = $this->formatTripKey('chmod', $filename);
-        $this->tripWires[$key] = true;
+        $key = $this->format_trip_key('chmod', $filename);
+        $this->trip_wires[$key] = true;
     }
-
     /**
      * @param int    $mode
      * @param string $filename
@@ -33,24 +29,19 @@ class SftpStub extends SFTP
      */
     public function chmod($mode, $filename, $recursive = false)
     {
-        $key = $this->formatTripKey('chmod', $filename);
-        $shouldTrip = $this->tripWires[$key] ?? false;
-
-        if ($shouldTrip) {
-            unset($this->tripWires[$key]);
-
+        $key = $this->format_trip_key('chmod', $filename);
+        $should_trip = $this->trip_wires[$key] ?? false;
+        if ($should_trip) {
+            unset($this->trip_wires[$key]);
             return false;
         }
-
         return parent::chmod($mode, $filename, $recursive);
     }
-
-    public function failOnPut(string $filename): void
+    public function fail_on_put(string $filename): void
     {
-        $key = $this->formatTripKey('put', $filename);
-        $this->tripWires[$key] = true;
+        $key = $this->format_trip_key('put', $filename);
+        $this->trip_wires[$key] = true;
     }
-
     /**
      * @param string          $remote_file
      * @param resource|string $data
@@ -60,40 +51,28 @@ class SftpStub extends SFTP
      *
      * @return bool
      */
-    public function put(
-        $remote_file,
-        $data,
-        $mode = self::SOURCE_STRING,
-        $start = -1,
-        $local_start = -1,
-        $progressCallback = null
-    ) {
-        $key = $this->formatTripKey('put', $remote_file);
-        $shouldTrip = $this->tripWires[$key] ?? false;
-
-        if ($shouldTrip) {
+    public function put($remote_file, $data, $mode = self::SOURCE_STRING, $start = -1, $local_start = -1, $progress_callback = null)
+    {
+        $key = $this->format_trip_key('put', $remote_file);
+        $should_trip = $this->trip_wires[$key] ?? false;
+        if ($should_trip) {
             return false;
         }
-
-        return parent::put($remote_file, $data, $mode, $start, $local_start, $progressCallback);
+        return parent::put($remote_file, $data, $mode, $start, $local_start, $progress_callback);
     }
-
     /**
      * @param array<int,mixed> $arguments
      */
-    private function formatTripKey(string ...$arguments): string
+    private function format_trip_key(string ...$arguments): string
     {
         $key = '';
-
         foreach ($arguments as $argument) {
             $key .= var_export($argument, true);
         }
-
         return $key;
     }
-
     public function reset(): void
     {
-        $this->tripWires = [];
+        $this->trip_wires = [];
     }
 }

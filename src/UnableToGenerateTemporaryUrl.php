@@ -1,26 +1,22 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
 use RuntimeException;
 use Throwable;
-
-final class UnableToGenerateTemporaryUrl extends RuntimeException implements FilesystemException
+final class Unable_To_Generate_Temporary_Url extends RuntimeException implements Filesystem_Exception
 {
     public function __construct(string $reason, string $path, ?Throwable $previous = null)
     {
-        parent::__construct("Unable to generate temporary url for $path: $reason", 0, $previous);
+        parent::__construct("Unable to generate temporary url for {$path}: {$reason}", 0, $previous);
     }
-
-    public static function dueToError(string $path, Throwable $exception): static
+    public static function due_to_error(string $path, Throwable $exception): static
     {
-        return new static($exception->getMessage(), $path, $exception);
+        return new static($exception->get_message(), $path, $exception);
     }
-
-    public static function noGeneratorConfigured(string $path, string $extraReason = ''): static
+    public static function no_generator_configured(string $path, string $extra_reason = ''): static
     {
-        return new static('No generator was configured ' . $extraReason, $path);
+        return new static('No generator was configured ' . $extra_reason, $path);
     }
 }

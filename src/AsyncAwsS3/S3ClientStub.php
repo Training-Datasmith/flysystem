@@ -1,188 +1,164 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Async_Aws_S3;
 
-namespace League\Flysystem\AsyncAwsS3;
-
-use AsyncAws\Core\Exception\Exception;
-use AsyncAws\Core\Exception\Http\NetworkException;
-use AsyncAws\Core\Result;
-use AsyncAws\S3\Input\CopyObjectRequest;
-use AsyncAws\S3\Input\DeleteObjectRequest;
-use AsyncAws\S3\Input\DeleteObjectsRequest;
-use AsyncAws\S3\Input\GetObjectAclRequest;
-use AsyncAws\S3\Input\GetObjectRequest;
-use AsyncAws\S3\Input\HeadObjectRequest;
-use AsyncAws\S3\Input\ListObjectsV2Request;
-use AsyncAws\S3\Input\PutObjectAclRequest;
-use AsyncAws\S3\Input\PutObjectRequest;
-use AsyncAws\S3\Result\CopyObjectOutput;
-use AsyncAws\S3\Result\DeleteObjectOutput;
-use AsyncAws\S3\Result\DeleteObjectsOutput;
-use AsyncAws\S3\Result\GetObjectAclOutput;
-use AsyncAws\S3\Result\GetObjectOutput;
-use AsyncAws\S3\Result\HeadObjectOutput;
-use AsyncAws\S3\Result\ListObjectsV2Output;
-use AsyncAws\S3\Result\ObjectExistsWaiter;
-use AsyncAws\S3\Result\PutObjectAclOutput;
-use AsyncAws\S3\Result\PutObjectOutput;
-use AsyncAws\S3\S3Client;
-use AsyncAws\SimpleS3\SimpleS3Client;
+use Async_Aws\Core\Exception\Exception;
+use Async_Aws\Core\Exception\Http\Network_Exception;
+use Async_Aws\Core\Result;
+use Async_Aws\S3\Input\Copy_Object_Request;
+use Async_Aws\S3\Input\Delete_Object_Request;
+use Async_Aws\S3\Input\Delete_Objects_Request;
+use Async_Aws\S3\Input\Get_Object_Acl_Request;
+use Async_Aws\S3\Input\Get_Object_Request;
+use Async_Aws\S3\Input\Head_Object_Request;
+use Async_Aws\S3\Input\List_Objects_V2request;
+use Async_Aws\S3\Input\Put_Object_Acl_Request;
+use Async_Aws\S3\Input\Put_Object_Request;
+use Async_Aws\S3\Result\Copy_Object_Output;
+use Async_Aws\S3\Result\Delete_Object_Output;
+use Async_Aws\S3\Result\Delete_Objects_Output;
+use Async_Aws\S3\Result\Get_Object_Acl_Output;
+use Async_Aws\S3\Result\Get_Object_Output;
+use Async_Aws\S3\Result\Head_Object_Output;
+use Async_Aws\S3\Result\List_Objects_V2output;
+use Async_Aws\S3\Result\Object_Exists_Waiter;
+use Async_Aws\S3\Result\Put_Object_Acl_Output;
+use Async_Aws\S3\Result\Put_Object_Output;
+use Async_Aws\S3\S3Client;
+use Async_Aws\Simple_S3\Simple_S3client;
 use DateTimeImmutable;
-use Symfony\Component\HttpClient\MockHttpClient;
-
+use Symfony\Component\Http_Client\Mock_Http_Client;
 /**
  * @codeCoverageIgnore
  */
-class S3ClientStub extends SimpleS3Client
+class S3client_Stub extends Simple_S3client
 {
     /**
      * @var S3Client
      */
-    private $actualClient;
-
+    private $actual_client;
     /**
      * @var Exception[]
      */
-    private array $stagedExceptions = [];
-
+    private array $staged_exceptions = [];
     /**
      * @var Result[]
      */
-    private array $stagedResult = [];
-
-    public function __construct(SimpleS3Client $client, $configuration = [])
+    private array $staged_result = [];
+    public function __construct(Simple_S3client $client, $configuration = [])
     {
-        $this->actualClient = $client;
-        parent::__construct($configuration, null, new MockHttpClient());
+        $this->actual_client = $client;
+        parent::__construct($configuration, null, new Mock_Http_Client());
     }
-
-    public function throwExceptionWhenExecutingCommand(string $commandName, ?Exception $exception = null): void
+    public function throw_exception_when_executing_command(string $command_name, ?Exception $exception = null): void
     {
-        $this->stagedExceptions[$commandName] = $exception ?? new NetworkException();
+        $this->staged_exceptions[$command_name] = $exception ?? new Network_Exception();
     }
-
-    public function stageResultForCommand(string $commandName, Result $result): void
+    public function stage_result_for_command(string $command_name, Result $result): void
     {
-        $this->stagedResult[$commandName] = $result;
+        $this->staged_result[$command_name] = $result;
     }
-
-    private function getStagedResult(string $name): ?Result
+    private function get_staged_result(string $name): ?Result
     {
-        if (array_key_exists($name, $this->stagedExceptions)) {
-            $exception = $this->stagedExceptions[$name];
-            unset($this->stagedExceptions[$name]);
-
+        if (array_key_exists($name, $this->staged_exceptions)) {
+            $exception = $this->staged_exceptions[$name];
+            unset($this->staged_exceptions[$name]);
             throw $exception;
         }
-
-        if (array_key_exists($name, $this->stagedResult)) {
-            $result = $this->stagedResult[$name];
-            unset($this->stagedResult[$name]);
-
+        if (array_key_exists($name, $this->staged_result)) {
+            $result = $this->staged_result[$name];
+            unset($this->staged_result[$name]);
             return $result;
         }
-
         return null;
     }
-
     /**
      * @param array|CopyObjectRequest $input
      */
-    public function copyObject($input): CopyObjectOutput
+    public function copy_object($input): Copy_Object_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('CopyObject') ?? $this->actualClient->copyObject($input);
+        return $this->get_staged_result('CopyObject') ?? $this->actual_client->copy_object($input);
     }
-
     /**
      * @param array|DeleteObjectRequest $input
      */
-    public function deleteObject($input): DeleteObjectOutput
+    public function delete_object($input): Delete_Object_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('DeleteObject') ?? $this->actualClient->deleteObject($input);
+        return $this->get_staged_result('DeleteObject') ?? $this->actual_client->delete_object($input);
     }
-
     /**
      * @param array|HeadObjectRequest $input
      */
-    public function headObject($input): HeadObjectOutput
+    public function head_object($input): Head_Object_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('HeadObject') ?? $this->actualClient->headObject($input);
+        return $this->get_staged_result('HeadObject') ?? $this->actual_client->head_object($input);
     }
-
     /**
      * @param array|HeadObjectRequest $input
      */
-    public function objectExists($input): ObjectExistsWaiter
+    public function object_exists($input): Object_Exists_Waiter
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('ObjectExists') ?? $this->actualClient->objectExists($input);
+        return $this->get_staged_result('ObjectExists') ?? $this->actual_client->object_exists($input);
     }
-
     /**
      * @param array|ListObjectsV2Request $input
      */
-    public function listObjectsV2($input): ListObjectsV2Output
+    public function list_objects_v2($input): List_Objects_V2output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('ListObjectsV2') ?? $this->actualClient->listObjectsV2($input);
+        return $this->get_staged_result('ListObjectsV2') ?? $this->actual_client->list_objects_v2($input);
     }
-
     /**
      * @param array|DeleteObjectsRequest $input
      */
-    public function deleteObjects($input): DeleteObjectsOutput
+    public function delete_objects($input): Delete_Objects_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('DeleteObjects') ?? $this->actualClient->deleteObjects($input);
+        return $this->get_staged_result('DeleteObjects') ?? $this->actual_client->delete_objects($input);
     }
-
     /**
      * @param array|GetObjectAclRequest $input
      */
-    public function getObjectAcl($input): GetObjectAclOutput
+    public function get_object_acl($input): Get_Object_Acl_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('GetObjectAcl') ?? $this->actualClient->getObjectAcl($input);
+        return $this->get_staged_result('GetObjectAcl') ?? $this->actual_client->get_object_acl($input);
     }
-
     /**
      * @param array|PutObjectAclRequest $input
      */
-    public function putObjectAcl($input): PutObjectAclOutput
+    public function put_object_acl($input): Put_Object_Acl_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('PutObjectAcl') ?? $this->actualClient->putObjectAcl($input);
+        return $this->get_staged_result('PutObjectAcl') ?? $this->actual_client->put_object_acl($input);
     }
-
     /**
      * @param array|PutObjectRequest $input
      */
-    public function putObject($input): PutObjectOutput
+    public function put_object($input): Put_Object_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('PutObject') ?? $this->actualClient->putObject($input);
+        return $this->get_staged_result('PutObject') ?? $this->actual_client->put_object($input);
     }
-
     /**
      * @param array|GetObjectRequest $input
      */
-    public function getObject($input): GetObjectOutput
+    public function get_object($input): Get_Object_Output
     {
         // @phpstan-ignore-next-line
-        return $this->getStagedResult('GetObject') ?? $this->actualClient->getObject($input);
+        return $this->get_staged_result('GetObject') ?? $this->actual_client->get_object($input);
     }
-
-    public function getUrl(string $bucket, string $key): string
+    public function get_url(string $bucket, string $key): string
     {
-        return $this->actualClient->getUrl($bucket, $key);
+        return $this->actual_client->get_url($bucket, $key);
     }
-
-    public function getPresignedUrl(string $bucket, string $key, ?DateTimeImmutable $expires = null, ?string $versionId = null): string
+    public function get_presigned_url(string $bucket, string $key, ?DateTimeImmutable $expires = null, ?string $version_id = null): string
     {
-        return $this->actualClient->getPresignedUrl($bucket, $key, $expires);
+        return $this->actual_client->get_presigned_url($bucket, $key, $expires);
     }
 }

@@ -1,20 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
 use InvalidArgumentException;
-
 use function var_export;
-
-class InvalidVisibilityProvided extends InvalidArgumentException implements FilesystemException
+class Invalid_Visibility_Provided extends InvalidArgumentException implements Filesystem_Exception
 {
-    public static function withVisibility(string $visibility, string $expectedMessage): InvalidVisibilityProvided
+    public static function with_visibility(string $visibility, string $expected_message): Invalid_Visibility_Provided
     {
         $provided = var_export($visibility, true);
-        $message = "Invalid visibility provided. Expected {$expectedMessage}, received {$provided}";
-
-        throw new InvalidVisibilityProvided($message);
+        $message = "Invalid visibility provided. Expected {$expected_message}, received {$provided}";
+        throw new Invalid_Visibility_Provided($message);
     }
 }

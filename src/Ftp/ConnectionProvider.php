@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem\Ftp;
 
-interface ConnectionProvider
+interface Connection_Provider
 {
     /**
      * @return resource
      */
-    public function createConnection(FtpConnectionOptions $options);
+    public function create_connection(Ftp_Connection_Options $options);
 }

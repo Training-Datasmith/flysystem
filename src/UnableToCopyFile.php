@@ -1,56 +1,42 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
 use RuntimeException;
 use Throwable;
-
-final class UnableToCopyFile extends RuntimeException implements FilesystemOperationFailed
+final class Unable_To_Copy_File extends RuntimeException implements Filesystem_Operation_Failed
 {
     private ?string $source = null;
-
     private ?string $destination = null;
-
     public function source(): string
     {
         return $this->source;
     }
-
     public function destination(): string
     {
         return $this->destination;
     }
-
-    public static function fromLocationTo(
-        string $sourcePath,
-        string $destinationPath,
-        ?Throwable $previous = null
-    ): UnableToCopyFile {
-        $e = new static("Unable to copy file from $sourcePath to $destinationPath", 0 , $previous);
-        $e->source = $sourcePath;
-        $e->destination = $destinationPath;
-
+    public static function from_location_to(string $source_path, string $destination_path, ?Throwable $previous = null): Unable_To_Copy_File
+    {
+        $e = new static("Unable to copy file from {$source_path} to {$destination_path}", 0, $previous);
+        $e->source = $source_path;
+        $e->destination = $destination_path;
         return $e;
     }
-
-    public static function sourceAndDestinationAreTheSame(string $source, string $destination): UnableToCopyFile
+    public static function source_and_destination_are_the_same(string $source, string $destination): Unable_To_Copy_File
     {
-        return UnableToCopyFile::because('Source and destination are the same', $source, $destination);
+        return Unable_To_Copy_File::because('Source and destination are the same', $source, $destination);
     }
-
-    public static function because(string $reason, string $sourcePath, string $destinationPath): UnableToCopyFile
+    public static function because(string $reason, string $source_path, string $destination_path): Unable_To_Copy_File
     {
-        $e = new static("Unable to copy file from $sourcePath to $destinationPath, because $reason");
-        $e->source = $sourcePath;
-        $e->destination = $destinationPath;
-
+        $e = new static("Unable to copy file from {$source_path} to {$destination_path}, because {$reason}");
+        $e->source = $source_path;
+        $e->destination = $destination_path;
         return $e;
     }
-
     public function operation(): string
     {
-        return FilesystemOperationFailed::OPERATION_COPY;
+        return Filesystem_Operation_Failed::OPERATION_COPY;
     }
 }

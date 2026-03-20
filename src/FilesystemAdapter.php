@@ -1,112 +1,95 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
-interface FilesystemAdapter
+interface Filesystem_Adapter
 {
     /**
      * @throws FilesystemException
      * @throws UnableToCheckExistence
      */
-    public function fileExists(string $path): bool;
-
+    public function file_exists(string $path): bool;
     /**
      * @throws FilesystemException
      * @throws UnableToCheckExistence
      */
-    public function directoryExists(string $path): bool;
-
+    public function directory_exists(string $path): bool;
     /**
      * @throws UnableToWriteFile
      * @throws FilesystemException
      */
     public function write(string $path, string $contents, Config $config): void;
-
     /**
      * @param resource $contents
      *
      * @throws UnableToWriteFile
      * @throws FilesystemException
      */
-    public function writeStream(string $path, $contents, Config $config): void;
-
+    public function write_stream(string $path, $contents, Config $config): void;
     /**
      * @throws UnableToReadFile
      * @throws FilesystemException
      */
     public function read(string $path): string;
-
     /**
      * @return resource
      *
      * @throws UnableToReadFile
      * @throws FilesystemException
      */
-    public function readStream(string $path);
-
+    public function read_stream(string $path);
     /**
      * @throws UnableToDeleteFile
      * @throws FilesystemException
      */
     public function delete(string $path): void;
-
     /**
      * @throws UnableToDeleteDirectory
      * @throws FilesystemException
      */
-    public function deleteDirectory(string $path): void;
-
+    public function delete_directory(string $path): void;
     /**
      * @throws UnableToCreateDirectory
      * @throws FilesystemException
      */
-    public function createDirectory(string $path, Config $config): void;
-
+    public function create_directory(string $path, Config $config): void;
     /**
      * @throws InvalidVisibilityProvided
      * @throws FilesystemException
      */
-    public function setVisibility(string $path, string $visibility): void;
-
+    public function set_visibility(string $path, string $visibility): void;
     /**
      * @throws UnableToRetrieveMetadata
      * @throws FilesystemException
      */
-    public function visibility(string $path): FileAttributes;
-
+    public function visibility(string $path): File_Attributes;
     /**
      * @throws UnableToRetrieveMetadata
      * @throws FilesystemException
      */
-    public function mimeType(string $path): FileAttributes;
-
+    public function mime_type(string $path): File_Attributes;
     /**
      * @throws UnableToRetrieveMetadata
      * @throws FilesystemException
      */
-    public function lastModified(string $path): FileAttributes;
-
+    public function last_modified(string $path): File_Attributes;
     /**
      * @throws UnableToRetrieveMetadata
      * @throws FilesystemException
      */
-    public function fileSize(string $path): FileAttributes;
-
+    public function file_size(string $path): File_Attributes;
     /**
      * @return iterable<StorageAttributes>
      *
      * @throws FilesystemException
      */
-    public function listContents(string $path, bool $deep): iterable;
-
+    public function list_contents(string $path, bool $deep): iterable;
     /**
      * @throws UnableToMoveFile
      * @throws FilesystemException
      */
     public function move(string $source, string $destination, Config $config): void;
-
     /**
      * @throws UnableToCopyFile
      * @throws FilesystemException

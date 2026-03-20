@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\UrlGeneration;
+declare (strict_types=1);
+namespace League\Flysystem\Url_Generation;
 
 use League\Flysystem\Config;
-use League\Flysystem\UnableToGeneratePublicUrl;
-
-final class ChainedPublicUrlGenerator implements PublicUrlGenerator
+use League\Flysystem\Unable_To_Generate_Public_Url;
+final class Chained_Public_Url_Generator implements Public_Url_Generator
 {
     /**
      * @param PublicUrlGenerator[] $generators
@@ -15,16 +13,14 @@ final class ChainedPublicUrlGenerator implements PublicUrlGenerator
     public function __construct(private iterable $generators)
     {
     }
-
-    public function publicUrl(string $path, Config $config): string
+    public function public_url(string $path, Config $config): string
     {
         foreach ($this->generators as $generator) {
             try {
-                return $generator->publicUrl($path, $config);
-            } catch (UnableToGeneratePublicUrl) {
+                return $generator->public_url($path, $config);
+            } catch (Unable_To_Generate_Public_Url) {
             }
         }
-
-        throw new UnableToGeneratePublicUrl('No supported public url generator found.', $path);
+        throw new Unable_To_Generate_Public_Url('No supported public url generator found.', $path);
     }
 }

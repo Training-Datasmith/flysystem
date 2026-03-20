@@ -1,182 +1,144 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\AwsS3V3;
+declare (strict_types=1);
+namespace League\Flysystem\Aws_S3v3;
 
 use Aws\Command;
-use Aws\CommandInterface;
-use Aws\ResultInterface;
+use Aws\Command_Interface;
+use Aws\Result_Interface;
 use Aws\S3\Exception\S3Exception;
-use Aws\S3\S3ClientInterface;
-use Aws\S3\S3ClientTrait;
-
-use function GuzzleHttp\Promise\promise_for;
-
-use GuzzleHttp\Psr7\Response;
-
+use Aws\S3\S3client_Interface;
+use Aws\S3\S3client_Trait;
+use function Guzzle_Http\Promise\promise_for;
+use Guzzle_Http\Psr7\Response;
 use Throwable;
-
 /**
  * @codeCoverageIgnore
  */
-class S3ClientStub implements S3ClientInterface
+class S3client_Stub implements S3client_Interface
 {
-    use S3ClientTrait;
-
+    use S3client_Trait;
     /**
      * @var S3ClientInterface
      */
-    private $actualClient;
-
+    private $actual_client;
     /**
      * @var S3Exception[]
      */
-    private array $stagedExceptions = [];
-
+    private array $staged_exceptions = [];
     /**
      * @var ResultInterface[]
      */
-    private array $stagedResult = [];
-
-    private ?\Throwable $exceptionForUpload = null;
-
-    public function __construct(S3ClientInterface $client)
+    private array $staged_result = [];
+    private ?\Throwable $exception_for_upload = null;
+    public function __construct(S3client_Interface $client)
     {
-        return $this->actualClient = $client;
+        return $this->actual_client = $client;
     }
-
-    public function throwDuringUpload(Throwable $throwable): void
+    public function throw_during_upload(Throwable $throwable): void
     {
-        $this->exceptionForUpload = $throwable;
+        $this->exception_for_upload = $throwable;
     }
-
     public function upload($bucket, $key, $body, $acl = 'private', array $options = [])
     {
-        if ($this->exceptionForUpload instanceof Throwable) {
-            $throwable = $this->exceptionForUpload;
-            $this->exceptionForUpload = null;
+        if ($this->exception_for_upload instanceof Throwable) {
+            $throwable = $this->exception_for_upload;
+            $this->exception_for_upload = null;
             throw $throwable;
         }
-
-        return $this->actualClient->upload($bucket, $key, $body, $acl, $options);
+        return $this->actual_client->upload($bucket, $key, $body, $acl, $options);
     }
-
-    public function failOnNextCopy(): void
+    public function fail_on_next_copy(): void
     {
-        $this->throwExceptionWhenExecutingCommand('CopyObject');
+        $this->throw_exception_when_executing_command('CopyObject');
     }
-
-    public function throwExceptionWhenExecutingCommand(string $commandName, ?S3Exception $exception = null): void
+    public function throw_exception_when_executing_command(string $command_name, ?S3Exception $exception = null): void
     {
-        $this->stagedExceptions[$commandName] = $exception ?? new S3Exception($commandName, new Command($commandName));
+        $this->staged_exceptions[$command_name] = $exception ?? new S3Exception($command_name, new Command($command_name));
     }
-
-    public function throw500ExceptionWhenExecutingCommand(string $commandName): void
+    public function throw500exception_when_executing_command(string $command_name): void
     {
         $response = new Response(500);
-        $exception = new S3Exception($commandName, new Command($commandName), compact('response'));
-
-        $this->throwExceptionWhenExecutingCommand($commandName, $exception);
+        $exception = new S3Exception($command_name, new Command($command_name), compact('response'));
+        $this->throw_exception_when_executing_command($command_name, $exception);
     }
-
-    public function stageResultForCommand(string $commandName, ResultInterface $result): void
+    public function stage_result_for_command(string $command_name, Result_Interface $result): void
     {
-        $this->stagedResult[$commandName] = $result;
+        $this->staged_result[$command_name] = $result;
     }
-
-    public function execute(CommandInterface $command)
+    public function execute(Command_Interface $command)
     {
-        return $this->executeAsync($command)->wait();
+        return $this->execute_async($command)->wait();
     }
-
-    public function getCommand($name, array $args = [])
+    public function get_command($name, array $args = [])
     {
-        return $this->actualClient->getCommand($name, $args);
+        return $this->actual_client->get_command($name, $args);
     }
-
-    public function getHandlerList()
+    public function get_handler_list()
     {
-        return $this->actualClient->getHandlerList();
+        return $this->actual_client->get_handler_list();
     }
-
     public function getIterator($name, array $args = [])
     {
-        return $this->actualClient->getIterator($name, $args);
+        return $this->actual_client->getIterator($name, $args);
     }
-
     public function __call(string $name, array $arguments)
     {
-        return $this->actualClient->__call($name, $arguments);
+        return $this->actual_client->__call($name, $arguments);
     }
-
-    public function executeAsync(CommandInterface $command)
+    public function execute_async(Command_Interface $command)
     {
-        $name = $command->getName();
-
-        if (array_key_exists($name, $this->stagedExceptions)) {
-            $exception = $this->stagedExceptions[$name];
-            unset($this->stagedExceptions[$name]);
+        $name = $command->get_name();
+        if (array_key_exists($name, $this->staged_exceptions)) {
+            $exception = $this->staged_exceptions[$name];
+            unset($this->staged_exceptions[$name]);
             throw $exception;
         }
-
-        if (array_key_exists($name, $this->stagedResult)) {
-            $result = $this->stagedResult[$name];
-            unset($this->stagedResult[$name]);
-
+        if (array_key_exists($name, $this->staged_result)) {
+            $result = $this->staged_result[$name];
+            unset($this->staged_result[$name]);
             return promise_for($result);
         }
-
-        return $this->actualClient->executeAsync($command);
+        return $this->actual_client->execute_async($command);
     }
-
-    public function getCredentials()
+    public function get_credentials()
     {
-        return $this->actualClient->getCredentials();
+        return $this->actual_client->get_credentials();
     }
-
-    public function getRegion()
+    public function get_region()
     {
-        return $this->actualClient->getRegion();
+        return $this->actual_client->get_region();
     }
-
-    public function getEndpoint()
+    public function get_endpoint()
     {
-        return $this->actualClient->getEndpoint();
+        return $this->actual_client->get_endpoint();
     }
-
-    public function getApi()
+    public function get_api()
     {
-        return $this->actualClient->getApi();
+        return $this->actual_client->get_api();
     }
-
-    public function getConfig($option = null)
+    public function get_config($option = null)
     {
-        return $this->actualClient->getConfig($option);
+        return $this->actual_client->get_config($option);
     }
-
-    public function getPaginator($name, array $args = [])
+    public function get_paginator($name, array $args = [])
     {
-        return $this->actualClient->getPaginator($name, $args);
+        return $this->actual_client->get_paginator($name, $args);
     }
-
-    public function waitUntil($name, array $args = []): void
+    public function wait_until($name, array $args = []): void
     {
-        $this->actualClient->waitUntil($name, $args);
+        $this->actual_client->wait_until($name, $args);
     }
-
-    public function getWaiter($name, array $args = [])
+    public function get_waiter($name, array $args = [])
     {
-        return $this->actualClient->getWaiter($name, $args);
+        return $this->actual_client->get_waiter($name, $args);
     }
-
-    public function createPresignedRequest(CommandInterface $command, $expires, array $options = [])
+    public function create_presigned_request(Command_Interface $command, $expires, array $options = [])
     {
-        return $this->actualClient->createPresignedRequest($command, $expires, $options);
+        return $this->actual_client->create_presigned_request($command, $expires, $options);
     }
-
-    public function getObjectUrl($bucket, $key)
+    public function get_object_url($bucket, $key)
     {
-        return $this->actualClient->getObjectUrl($bucket, $key);
+        return $this->actual_client->get_object_url($bucket, $key);
     }
 }

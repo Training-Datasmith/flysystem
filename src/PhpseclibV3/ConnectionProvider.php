@@ -1,15 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV3;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V3;
 
 use phpseclib3\Net\SFTP;
-
 /**
  * @method void disconnect()
  */
-interface ConnectionProvider
+interface Connection_Provider
 {
-    public function provideConnection(): SFTP;
+    public function provide_connection(): SFTP;
 }

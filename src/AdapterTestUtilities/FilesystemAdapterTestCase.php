@@ -1,104 +1,83 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\AdapterTestUtilities;
+declare (strict_types=1);
+namespace League\Flysystem\Adapter_Test_Utilities;
 
 use DateInterval;
 use DateTimeImmutable;
-
 use function file_get_contents;
-
 use Generator;
-
 use function is_resource;
 use function iterator_to_array;
-
-use League\Flysystem\ChecksumProvider;
+use League\Flysystem\Checksum_Provider;
 use League\Flysystem\Config;
-use League\Flysystem\DirectoryAttributes;
-use League\Flysystem\FileAttributes;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\StorageAttributes;
-use League\Flysystem\UnableToCopyFile;
-use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToProvideChecksum;
-use League\Flysystem\UnableToReadFile;
-use League\Flysystem\UnableToRetrieveMetadata;
-use League\Flysystem\UnableToSetVisibility;
-use League\Flysystem\UrlGeneration\PublicUrlGenerator;
-use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;
+use League\Flysystem\Directory_Attributes;
+use League\Flysystem\File_Attributes;
+use League\Flysystem\Filesystem_Adapter;
+use League\Flysystem\Storage_Attributes;
+use League\Flysystem\Unable_To_Copy_File;
+use League\Flysystem\Unable_To_Move_File;
+use League\Flysystem\Unable_To_Provide_Checksum;
+use League\Flysystem\Unable_To_Read_File;
+use League\Flysystem\Unable_To_Retrieve_Metadata;
+use League\Flysystem\Unable_To_Set_Visibility;
+use League\Flysystem\Url_Generation\Public_Url_Generator;
+use League\Flysystem\Url_Generation\Temporary_Url_Generator;
 use League\Flysystem\Visibility;
-
 use const PHP_EOL;
-
-use PHPUnit\Framework\TestCase;
+use Php_Unit\Framework\Test_Case;
 use Throwable;
-
 /**
  * @codeCoverageIgnore
  */
-abstract class FilesystemAdapterTestCase extends TestCase
+abstract class Filesystem_Adapter_Test_Case extends Test_Case
 {
-    use RetryOnTestException;
-
+    use Retry_On_Test_Exception;
     /**
      * @var FilesystemAdapter
      */
     protected static $adapter;
-
     /**
      * @var bool
      */
-    protected $isUsingCustomAdapter = false;
-
-    public static function clearFilesystemAdapterCache(): void
+    protected $is_using_custom_adapter = false;
+    public static function clear_filesystem_adapter_cache(): void
     {
         static::$adapter = null;
     }
-
-    abstract protected static function createFilesystemAdapter(): FilesystemAdapter;
-
-    public function adapter(): FilesystemAdapter
+    abstract protected static function create_filesystem_adapter(): Filesystem_Adapter;
+    public function adapter(): Filesystem_Adapter
     {
-        if (! static::$adapter instanceof FilesystemAdapter) {
-            static::$adapter = static::createFilesystemAdapter();
+        if (!static::$adapter instanceof Filesystem_Adapter) {
+            static::$adapter = static::create_filesystem_adapter();
         }
-
         return static::$adapter;
     }
-
-    public static function tearDownAfterClass(): void
+    public static function tear_down_after_class(): void
     {
-        self::clearFilesystemAdapterCache();
+        self::clear_filesystem_adapter_cache();
     }
-
-    protected function setUp(): void
+    protected function set_up(): void
     {
         $this->adapter();
     }
-
-    protected function useAdapter(FilesystemAdapter $adapter): FilesystemAdapter
+    protected function use_adapter(Filesystem_Adapter $adapter): Filesystem_Adapter
     {
         static::$adapter = $adapter;
-        $this->isUsingCustomAdapter = true;
-
+        $this->is_using_custom_adapter = true;
         return $adapter;
     }
-
     /**
      * @after
      */
-    public function cleanupAdapter(): void
+    public function cleanup_adapter(): void
     {
-        $this->clearCustomAdapter();
-        $this->clearStorage();
+        $this->clear_custom_adapter();
+        $this->clear_storage();
     }
-
-    public function clearStorage(): void
+    public function clear_storage(): void
     {
         reset_function_mocks();
-
         try {
             $adapter = $this->adapter();
         } catch (Throwable) {
@@ -110,67 +89,54 @@ abstract class FilesystemAdapterTestCase extends TestCase
              */
             return;
         }
-
-        $this->runSetup(function () use ($adapter): void {
+        $this->run_setup(function () use ($adapter): void {
             /** @var StorageAttributes $item */
-            foreach ($adapter->listContents('', false) as $item) {
-                if ($item->isDir()) {
-                    $adapter->deleteDirectory($item->path());
+            foreach ($adapter->list_contents('', false) as $item) {
+                if ($item->is_dir()) {
+                    $adapter->delete_directory($item->path());
                 } else {
                     $adapter->delete($item->path());
                 }
             }
         });
     }
-
-    public function clearCustomAdapter(): void
+    public function clear_custom_adapter(): void
     {
-        if ($this->isUsingCustomAdapter) {
-            $this->isUsingCustomAdapter = false;
-            self::clearFilesystemAdapterCache();
+        if ($this->is_using_custom_adapter) {
+            $this->is_using_custom_adapter = false;
+            self::clear_filesystem_adapter_cache();
         }
     }
-
     /**
      * @test
      */
     public function writing_and_reading_with_string(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-
             $adapter->write('path.txt', 'contents', new Config());
-            $fileExists = $adapter->fileExists('path.txt');
+            $file_exists = $adapter->file_exists('path.txt');
             $contents = $adapter->read('path.txt');
-
-            $this->assertTrue($fileExists);
-            $this->assertEquals('contents', $contents);
+            $this->assert_true($file_exists);
+            $this->assert_equals('contents', $contents);
         });
     }
-
     /**
      * @test
      */
     public function writing_a_file_with_a_stream(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $writeStream = stream_with_contents('contents');
-
-            $adapter->writeStream('path.txt', $writeStream, new Config([
-                Config::OPTION_VISIBILITY => Visibility::PUBLIC,
-            ]));
-
-            if (is_resource($writeStream)) {
-                fclose($writeStream);
+            $write_stream = stream_with_contents('contents');
+            $adapter->write_stream('path.txt', $write_stream, new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC]));
+            if (is_resource($write_stream)) {
+                fclose($write_stream);
             }
-
-            $fileExists = $adapter->fileExists('path.txt');
-
-            $this->assertTrue($fileExists);
+            $file_exists = $adapter->file_exists('path.txt');
+            $this->assert_true($file_exists);
         });
     }
-
     /**
      * @test
      *
@@ -178,17 +144,14 @@ abstract class FilesystemAdapterTestCase extends TestCase
      */
     public function writing_and_reading_files_with_special_path(string $path): void
     {
-        $this->runScenario(function () use ($path): void {
+        $this->run_scenario(function () use ($path): void {
             $adapter = $this->adapter();
-
             $adapter->write($path, 'contents', new Config());
             $contents = $adapter->read($path);
-
-            $this->assertEquals('contents', $contents);
+            $this->assert_equals('contents', $contents);
         });
     }
-
-    public static function filenameProvider(): Generator
+    public static function filename_provider(): Generator
     {
         yield 'a path with square brackets in filename 1' => ['some/file[name].txt'];
         yield 'a path with square brackets in filename 2' => ['some/file[0].txt'];
@@ -205,791 +168,628 @@ abstract class FilesystemAdapterTestCase extends TestCase
         yield 'a path with space in dirname' => ['some dir/filename.txt'];
         yield 'a path with space in filename' => ['somedir/file name.txt'];
     }
-
     /**
      * @test
      */
     public function writing_a_file_with_an_empty_stream(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $writeStream = stream_with_contents('');
-
-            $adapter->writeStream('path.txt', $writeStream, new Config());
-
-            if (is_resource($writeStream)) {
-                fclose($writeStream);
+            $write_stream = stream_with_contents('');
+            $adapter->write_stream('path.txt', $write_stream, new Config());
+            if (is_resource($write_stream)) {
+                fclose($write_stream);
             }
-
-            $fileExists = $adapter->fileExists('path.txt');
-
-            $this->assertTrue($fileExists);
-
+            $file_exists = $adapter->file_exists('path.txt');
+            $this->assert_true($file_exists);
             $contents = $adapter->read('path.txt');
-            $this->assertEquals('', $contents);
+            $this->assert_equals('', $contents);
         });
     }
-
     /**
      * @test
      */
     public function listing_a_directory_named_0(): void
     {
-        $this->givenWeHaveAnExistingFile('0/path.txt');
-        $this->givenWeHaveAnExistingFile('1/path.txt');
-
-        $this->runScenario(function (): void {
-            $listing = iterator_to_array($this->adapter()->listContents('0', false));
-
-            $this->assertCount(1, $listing);
+        $this->given_we_have_an_existing_file('0/path.txt');
+        $this->given_we_have_an_existing_file('1/path.txt');
+        $this->run_scenario(function (): void {
+            $listing = iterator_to_array($this->adapter()->list_contents('0', false));
+            $this->assert_count(1, $listing);
         });
     }
-
     /**
      * @test
      */
     public function reading_a_file(): void
     {
-        $this->givenWeHaveAnExistingFile('path.txt', 'contents');
-
-        $this->runScenario(function (): void {
+        $this->given_we_have_an_existing_file('path.txt', 'contents');
+        $this->run_scenario(function (): void {
             $contents = $this->adapter()->read('path.txt');
-
-            $this->assertEquals('contents', $contents);
+            $this->assert_equals('contents', $contents);
         });
     }
-
     /**
      * @test
      */
     public function reading_a_file_with_a_stream(): void
     {
-        $this->givenWeHaveAnExistingFile('path.txt', 'contents');
-
-        $this->runScenario(function (): void {
-            $readStream = $this->adapter()->readStream('path.txt');
-            $contents = stream_get_contents($readStream);
-
-            $this->assertIsResource($readStream);
-            $this->assertEquals('contents', $contents);
-            fclose($readStream);
+        $this->given_we_have_an_existing_file('path.txt', 'contents');
+        $this->run_scenario(function (): void {
+            $read_stream = $this->adapter()->read_stream('path.txt');
+            $contents = stream_get_contents($read_stream);
+            $this->assert_is_resource($read_stream);
+            $this->assert_equals('contents', $contents);
+            fclose($read_stream);
         });
     }
-
     /**
      * @test
      */
     public function overwriting_a_file(): void
     {
-        $this->runScenario(function (): void {
-            $this->givenWeHaveAnExistingFile('path.txt', 'contents', ['visibility' => Visibility::PUBLIC]);
+        $this->run_scenario(function (): void {
+            $this->given_we_have_an_existing_file('path.txt', 'contents', ['visibility' => Visibility::PUBLIC]);
             $adapter = $this->adapter();
-
             $adapter->write('path.txt', 'new contents', new Config(['visibility' => Visibility::PRIVATE]));
-
             $contents = $adapter->read('path.txt');
-            $this->assertEquals('new contents', $contents);
+            $this->assert_equals('new contents', $contents);
             $visibility = $adapter->visibility('path.txt')->visibility();
-            $this->assertEquals(Visibility::PRIVATE, $visibility);
+            $this->assert_equals(Visibility::PRIVATE, $visibility);
         });
     }
-
     /**
      * @test
      */
     public function a_file_exists_only_when_it_is_written_and_not_deleted(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-
             // does not exist before creation
-            self::assertFalse($adapter->fileExists('path.txt'));
-
+            self::assert_false($adapter->file_exists('path.txt'));
             // a file exists after creation
-            $this->givenWeHaveAnExistingFile('path.txt');
-            self::assertTrue($adapter->fileExists('path.txt'));
-
+            $this->given_we_have_an_existing_file('path.txt');
+            self::assert_true($adapter->file_exists('path.txt'));
             // a file no longer exists after creation
             $adapter->delete('path.txt');
-            self::assertFalse($adapter->fileExists('path.txt'));
+            self::assert_false($adapter->file_exists('path.txt'));
         });
     }
-
     /**
      * @test
      */
     public function listing_contents_shallow(): void
     {
-        $this->runScenario(function (): void {
-            $this->givenWeHaveAnExistingFile('some/0-path.txt', 'contents');
-            $this->givenWeHaveAnExistingFile('some/1-nested/path.txt', 'contents');
-
-            $listing = $this->adapter()->listContents('some', false);
+        $this->run_scenario(function (): void {
+            $this->given_we_have_an_existing_file('some/0-path.txt', 'contents');
+            $this->given_we_have_an_existing_file('some/1-nested/path.txt', 'contents');
+            $listing = $this->adapter()->list_contents('some', false);
             /** @var StorageAttributes[] $items */
             $items = iterator_to_array($listing);
-
-            $this->assertInstanceOf(Generator::class, $listing);
-            $this->assertContainsOnlyInstancesOf(StorageAttributes::class, $items);
-
-            $this->assertCount(2, $items, $this->formatIncorrectListingCount($items));
-
+            $this->assert_instance_of(Generator::class, $listing);
+            $this->assert_contains_only_instances_of(Storage_Attributes::class, $items);
+            $this->assert_count(2, $items, $this->format_incorrect_listing_count($items));
             // Order of entries is not guaranteed
-            [$fileIndex, $directoryIndex] = $items[0]->isFile() ? [0, 1] : [1, 0];
-
-            $this->assertEquals('some/0-path.txt', $items[$fileIndex]->path());
-            $this->assertEquals('some/1-nested', $items[$directoryIndex]->path());
-            $this->assertTrue($items[$fileIndex]->isFile());
-            $this->assertTrue($items[$directoryIndex]->isDir());
+            [$file_index, $directory_index] = $items[0]->is_file() ? [0, 1] : [1, 0];
+            $this->assert_equals('some/0-path.txt', $items[$file_index]->path());
+            $this->assert_equals('some/1-nested', $items[$directory_index]->path());
+            $this->assert_true($items[$file_index]->is_file());
+            $this->assert_true($items[$directory_index]->is_dir());
         });
     }
-
     /**
      * @test
      */
     public function checking_if_a_non_existing_directory_exists(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            self::assertFalse($adapter->directoryExists('this-does-not-exist.php'));
+            self::assert_false($adapter->directory_exists('this-does-not-exist.php'));
         });
     }
-
     /**
      * @test
      */
     public function checking_if_a_directory_exists_after_writing_a_file(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $this->givenWeHaveAnExistingFile('existing-directory/file.txt');
-            self::assertTrue($adapter->directoryExists('existing-directory'));
+            $this->given_we_have_an_existing_file('existing-directory/file.txt');
+            self::assert_true($adapter->directory_exists('existing-directory'));
         });
     }
-
     /**
      * @test
      */
     public function checking_if_a_directory_exists_after_creating_it(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $adapter->createDirectory('explicitly-created-directory', new Config());
-            self::assertTrue($adapter->directoryExists('explicitly-created-directory'));
-            $adapter->deleteDirectory('explicitly-created-directory');
-            $l = iterator_to_array($adapter->listContents('/', false), false);
-            self::assertEquals([], $l);
-            self::assertFalse($adapter->directoryExists('explicitly-created-directory'));
+            $adapter->create_directory('explicitly-created-directory', new Config());
+            self::assert_true($adapter->directory_exists('explicitly-created-directory'));
+            $adapter->delete_directory('explicitly-created-directory');
+            $l = iterator_to_array($adapter->list_contents('/', false), false);
+            self::assert_equals([], $l);
+            self::assert_false($adapter->directory_exists('explicitly-created-directory'));
         });
     }
-
     /**
      * @test
      */
     public function listing_contents_recursive(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $adapter->createDirectory('path', new Config());
+            $adapter->create_directory('path', new Config());
             $adapter->write('path/file.txt', 'string', new Config());
-
-            $listing = $adapter->listContents('', true);
+            $listing = $adapter->list_contents('', true);
             /** @var StorageAttributes[] $items */
             $items = iterator_to_array($listing);
-            $this->assertCount(2, $items, $this->formatIncorrectListingCount($items));
+            $this->assert_count(2, $items, $this->format_incorrect_listing_count($items));
         });
     }
-
-    protected function formatIncorrectListingCount(array $items): string
+    protected function format_incorrect_listing_count(array $items): string
     {
         $message = "Incorrect number of items returned.\nThe listing contains:\n\n";
-
         /** @var StorageAttributes $item */
         foreach ($items as $item) {
             $message .= "- {$item->path()}\n";
         }
-
         return $message . PHP_EOL;
     }
-
-    protected function givenWeHaveAnExistingFile(string $path, string $contents = 'contents', array $config = []): void
+    protected function given_we_have_an_existing_file(string $path, string $contents = 'contents', array $config = []): void
     {
-        $this->runSetup(function () use ($path, $contents, $config): void {
+        $this->run_setup(function () use ($path, $contents, $config): void {
             $this->adapter()->write($path, $contents, new Config($config));
         });
     }
-
     /**
      * @test
      */
     public function fetching_file_size(): void
     {
         $adapter = $this->adapter();
-        $this->givenWeHaveAnExistingFile('path.txt', 'contents');
-
-        $this->runScenario(function () use ($adapter): void {
-            $attributes = $adapter->fileSize('path.txt');
-            $this->assertInstanceOf(FileAttributes::class, $attributes);
-            $this->assertEquals(8, $attributes->fileSize());
+        $this->given_we_have_an_existing_file('path.txt', 'contents');
+        $this->run_scenario(function () use ($adapter): void {
+            $attributes = $adapter->file_size('path.txt');
+            $this->assert_instance_of(File_Attributes::class, $attributes);
+            $this->assert_equals(8, $attributes->file_size());
         });
     }
-
     /**
      * @test
      */
     public function setting_visibility(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $this->givenWeHaveAnExistingFile('path.txt', 'contents', [Config::OPTION_VISIBILITY => Visibility::PUBLIC]);
-
-            $this->assertEquals(Visibility::PUBLIC, $adapter->visibility('path.txt')->visibility());
-
-            $adapter->setVisibility('path.txt', Visibility::PRIVATE);
-
-            $this->assertEquals(Visibility::PRIVATE, $adapter->visibility('path.txt')->visibility());
-
-            $adapter->setVisibility('path.txt', Visibility::PUBLIC);
-
-            $this->assertEquals(Visibility::PUBLIC, $adapter->visibility('path.txt')->visibility());
+            $this->given_we_have_an_existing_file('path.txt', 'contents', [Config::OPTION_VISIBILITY => Visibility::PUBLIC]);
+            $this->assert_equals(Visibility::PUBLIC, $adapter->visibility('path.txt')->visibility());
+            $adapter->set_visibility('path.txt', Visibility::PRIVATE);
+            $this->assert_equals(Visibility::PRIVATE, $adapter->visibility('path.txt')->visibility());
+            $adapter->set_visibility('path.txt', Visibility::PUBLIC);
+            $this->assert_equals(Visibility::PUBLIC, $adapter->visibility('path.txt')->visibility());
         });
     }
-
     /**
      * @test
      */
     public function fetching_file_size_of_a_directory(): void
     {
-        $this->expectException(UnableToRetrieveMetadata::class);
-
+        $this->expect_exception(Unable_To_Retrieve_Metadata::class);
         $adapter = $this->adapter();
-
-        $this->runScenario(function () use ($adapter): void {
-            $adapter->createDirectory('path', new Config());
-            $adapter->fileSize('path/');
+        $this->run_scenario(function () use ($adapter): void {
+            $adapter->create_directory('path', new Config());
+            $adapter->file_size('path/');
         });
     }
-
     /**
      * @test
      */
     public function fetching_file_size_of_non_existing_file(): void
     {
-        $this->expectException(UnableToRetrieveMetadata::class);
-
-        $this->runScenario(function (): void {
-            $this->adapter()->fileSize('non-existing-file.txt');
+        $this->expect_exception(Unable_To_Retrieve_Metadata::class);
+        $this->run_scenario(function (): void {
+            $this->adapter()->file_size('non-existing-file.txt');
         });
     }
-
     /**
      * @test
      */
     public function fetching_last_modified_of_non_existing_file(): void
     {
-        $this->expectException(UnableToRetrieveMetadata::class);
-
-        $this->runScenario(function (): void {
-            $this->adapter()->lastModified('non-existing-file.txt');
+        $this->expect_exception(Unable_To_Retrieve_Metadata::class);
+        $this->run_scenario(function (): void {
+            $this->adapter()->last_modified('non-existing-file.txt');
         });
     }
-
     /**
      * @test
      */
     public function fetching_visibility_of_non_existing_file(): void
     {
-        $this->expectException(UnableToRetrieveMetadata::class);
-
-        $this->runScenario(function (): void {
+        $this->expect_exception(Unable_To_Retrieve_Metadata::class);
+        $this->run_scenario(function (): void {
             $this->adapter()->visibility('non-existing-file.txt');
         });
     }
-
     /**
      * @test
      */
     public function fetching_the_mime_type_of_an_svg_file(): void
     {
-        $this->runScenario(function (): void {
-            $this->givenWeHaveAnExistingFile('file.svg', file_get_contents(__DIR__ . '/test_files/flysystem.svg'));
-
-            $mimetype = $this->adapter()->mimeType('file.svg')->mimeType();
-
-            $this->assertStringStartsWith('image/svg+xml', $mimetype);
+        $this->run_scenario(function (): void {
+            $this->given_we_have_an_existing_file('file.svg', file_get_contents(__DIR__ . '/test_files/flysystem.svg'));
+            $mimetype = $this->adapter()->mime_type('file.svg')->mime_type();
+            $this->assert_string_starts_with('image/svg+xml', $mimetype);
         });
     }
-
     /**
      * @test
      */
     public function fetching_mime_type_of_non_existing_file(): void
     {
-        $this->expectException(UnableToRetrieveMetadata::class);
-
-        $this->runScenario(function (): void {
-            $this->adapter()->mimeType('non-existing-file.txt');
+        $this->expect_exception(Unable_To_Retrieve_Metadata::class);
+        $this->run_scenario(function (): void {
+            $this->adapter()->mime_type('non-existing-file.txt');
         });
     }
-
     /**
      * @test
      */
     public function fetching_unknown_mime_type_of_a_file(): void
     {
-        $this->givenWeHaveAnExistingFile(
-            'unknown-mime-type.md5',
-            file_get_contents(__DIR__ . '/test_files/unknown-mime-type.md5')
-        );
-
-        $this->expectException(UnableToRetrieveMetadata::class);
-
-        $this->runScenario(function (): void {
-            $this->adapter()->mimeType('unknown-mime-type.md5');
+        $this->given_we_have_an_existing_file('unknown-mime-type.md5', file_get_contents(__DIR__ . '/test_files/unknown-mime-type.md5'));
+        $this->expect_exception(Unable_To_Retrieve_Metadata::class);
+        $this->run_scenario(function (): void {
+            $this->adapter()->mime_type('unknown-mime-type.md5');
         });
     }
-
     /**
      * @test
      */
     public function listing_a_toplevel_directory(): void
     {
-        $this->givenWeHaveAnExistingFile('path1.txt');
-        $this->givenWeHaveAnExistingFile('path2.txt');
-
-        $this->runScenario(function (): void {
-            $contents = iterator_to_array($this->adapter()->listContents('', true));
-
-            $this->assertCount(2, $contents);
+        $this->given_we_have_an_existing_file('path1.txt');
+        $this->given_we_have_an_existing_file('path2.txt');
+        $this->run_scenario(function (): void {
+            $contents = iterator_to_array($this->adapter()->list_contents('', true));
+            $this->assert_count(2, $contents);
         });
     }
-
     /**
      * @test
      */
     public function writing_and_reading_with_streams(): void
     {
-        $this->runScenario(function (): void {
-            $writeStream = stream_with_contents('contents');
+        $this->run_scenario(function (): void {
+            $write_stream = stream_with_contents('contents');
             $adapter = $this->adapter();
-
-            $adapter->writeStream('path.txt', $writeStream, new Config());
-            if (is_resource($writeStream)) {
-                fclose($writeStream);
-            };
-            $readStream = $adapter->readStream('path.txt');
-
-            $this->assertIsResource($readStream);
-            $contents = stream_get_contents($readStream);
-            fclose($readStream);
-            $this->assertEquals('contents', $contents);
+            $adapter->write_stream('path.txt', $write_stream, new Config());
+            if (is_resource($write_stream)) {
+                fclose($write_stream);
+            }
+            $read_stream = $adapter->read_stream('path.txt');
+            $this->assert_is_resource($read_stream);
+            $contents = stream_get_contents($read_stream);
+            fclose($read_stream);
+            $this->assert_equals('contents', $contents);
         });
     }
-
     /**
      * @test
      */
     public function setting_visibility_on_a_file_that_does_not_exist(): void
     {
-        $this->expectException(UnableToSetVisibility::class);
-
-        $this->runScenario(function (): void {
-            $this->adapter()->setVisibility('this-path-does-not-exists.txt', Visibility::PRIVATE);
+        $this->expect_exception(Unable_To_Set_Visibility::class);
+        $this->run_scenario(function (): void {
+            $this->adapter()->set_visibility('this-path-does-not-exists.txt', Visibility::PRIVATE);
         });
     }
-
     /**
      * @test
      */
     public function copying_a_file(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $adapter->write(
-                'source.txt',
-                'contents to be copied',
-                new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC])
-            );
-
+            $adapter->write('source.txt', 'contents to be copied', new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC]));
             $adapter->copy('source.txt', 'destination.txt', new Config());
-
-            $this->assertTrue($adapter->fileExists('source.txt'));
-            $this->assertTrue($adapter->fileExists('destination.txt'));
-            $this->assertEquals(Visibility::PUBLIC, $adapter->visibility('destination.txt')->visibility());
-            $this->assertEquals('text/plain', $adapter->mimeType('destination.txt')->mimeType());
-            $this->assertEquals('contents to be copied', $adapter->read('destination.txt'));
+            $this->assert_true($adapter->file_exists('source.txt'));
+            $this->assert_true($adapter->file_exists('destination.txt'));
+            $this->assert_equals(Visibility::PUBLIC, $adapter->visibility('destination.txt')->visibility());
+            $this->assert_equals('text/plain', $adapter->mime_type('destination.txt')->mime_type());
+            $this->assert_equals('contents to be copied', $adapter->read('destination.txt'));
         });
     }
-
     /**
      * @test
      */
     public function copying_a_file_that_does_not_exist(): void
     {
-        $this->expectException(UnableToCopyFile::class);
-
-        $this->runScenario(function (): void {
+        $this->expect_exception(Unable_To_Copy_File::class);
+        $this->run_scenario(function (): void {
             $this->adapter()->copy('source.txt', 'destination.txt', new Config());
         });
     }
-
     /**
      * @test
      */
     public function copying_a_file_again(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $adapter->write(
-                'source.txt',
-                'contents to be copied',
-                new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC])
-            );
-
+            $adapter->write('source.txt', 'contents to be copied', new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC]));
             $adapter->copy('source.txt', 'destination.txt', new Config());
-
-            $this->assertTrue($adapter->fileExists('source.txt'));
-            $this->assertTrue($adapter->fileExists('destination.txt'));
-            $this->assertEquals(Visibility::PUBLIC, $adapter->visibility('destination.txt')->visibility());
-            $this->assertEquals('contents to be copied', $adapter->read('destination.txt'));
+            $this->assert_true($adapter->file_exists('source.txt'));
+            $this->assert_true($adapter->file_exists('destination.txt'));
+            $this->assert_equals(Visibility::PUBLIC, $adapter->visibility('destination.txt')->visibility());
+            $this->assert_equals('contents to be copied', $adapter->read('destination.txt'));
         });
     }
-
     /**
      * @test
      */
     public function moving_a_file(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $adapter->write(
-                'source.txt',
-                'contents to be copied',
-                new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC])
-            );
+            $adapter->write('source.txt', 'contents to be copied', new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC]));
             $adapter->move('source.txt', 'destination.txt', new Config());
-            $this->assertFalse(
-                $adapter->fileExists('source.txt'),
-                'After moving a file should no longer exist in the original location.'
-            );
-            $this->assertTrue(
-                $adapter->fileExists('destination.txt'),
-                'After moving, a file should be present at the new location.'
-            );
-            $this->assertEquals(Visibility::PUBLIC, $adapter->visibility('destination.txt')->visibility());
-            $this->assertEquals('text/plain', $adapter->mimeType('destination.txt')->mimeType());
-            $this->assertEquals('contents to be copied', $adapter->read('destination.txt'));
+            $this->assert_false($adapter->file_exists('source.txt'), 'After moving a file should no longer exist in the original location.');
+            $this->assert_true($adapter->file_exists('destination.txt'), 'After moving, a file should be present at the new location.');
+            $this->assert_equals(Visibility::PUBLIC, $adapter->visibility('destination.txt')->visibility());
+            $this->assert_equals('text/plain', $adapter->mime_type('destination.txt')->mime_type());
+            $this->assert_equals('contents to be copied', $adapter->read('destination.txt'));
         });
     }
-
     /**
      * @test
      */
     public function file_exists_on_directory_is_false(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-
-            $this->assertFalse($adapter->directoryExists('test'));
-            $adapter->createDirectory('test', new Config());
-
-            $this->assertTrue($adapter->directoryExists('test'));
-            $this->assertFalse($adapter->fileExists('test'));
+            $this->assert_false($adapter->directory_exists('test'));
+            $adapter->create_directory('test', new Config());
+            $this->assert_true($adapter->directory_exists('test'));
+            $this->assert_false($adapter->file_exists('test'));
         });
     }
-
     /**
      * @test
      */
     public function directory_exists_on_file_is_false(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-
-            $this->assertFalse($adapter->fileExists('test.txt'));
+            $this->assert_false($adapter->file_exists('test.txt'));
             $adapter->write('test.txt', 'content', new Config());
-
-            $this->assertTrue($adapter->fileExists('test.txt'));
-            $this->assertFalse($adapter->directoryExists('test.txt'));
+            $this->assert_true($adapter->file_exists('test.txt'));
+            $this->assert_false($adapter->directory_exists('test.txt'));
         });
     }
-
     /**
      * @test
      */
     public function reading_a_file_that_does_not_exist(): void
     {
-        $this->expectException(UnableToReadFile::class);
-
-        $this->runScenario(function (): void {
+        $this->expect_exception(Unable_To_Read_File::class);
+        $this->run_scenario(function (): void {
             $this->adapter()->read('path.txt');
         });
     }
-
     /**
      * @test
      */
     public function moving_a_file_that_does_not_exist(): void
     {
-        $this->expectException(UnableToMoveFile::class);
-
-        $this->runScenario(function (): void {
+        $this->expect_exception(Unable_To_Move_File::class);
+        $this->run_scenario(function (): void {
             $this->adapter()->move('source.txt', 'destination.txt', new Config());
         });
     }
-
     /**
      * @test
      */
     public function trying_to_delete_a_non_existing_file(): void
     {
         $adapter = $this->adapter();
-
         $adapter->delete('path.txt');
-        $fileExists = $adapter->fileExists('path.txt');
-
-        $this->assertFalse($fileExists);
+        $file_exists = $adapter->file_exists('path.txt');
+        $this->assert_false($file_exists);
     }
-
     /**
      * @test
      */
     public function checking_if_files_exist(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $fileExistsBefore = $adapter->fileExists('some/path.txt');
+            $file_exists_before = $adapter->file_exists('some/path.txt');
             $adapter->write('some/path.txt', 'contents', new Config());
-            $fileExistsAfter = $adapter->fileExists('some/path.txt');
-
-            $this->assertFalse($fileExistsBefore);
-            $this->assertTrue($fileExistsAfter);
+            $file_exists_after = $adapter->file_exists('some/path.txt');
+            $this->assert_false($file_exists_before);
+            $this->assert_true($file_exists_after);
         });
     }
-
     /**
      * @test
      */
     public function fetching_last_modified(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write('path.txt', 'contents', new Config());
-
-            $attributes = $adapter->lastModified('path.txt');
-
-            $this->assertInstanceOf(FileAttributes::class, $attributes);
-            $this->assertIsInt($attributes->lastModified());
-            $this->assertTrue($attributes->lastModified() > time() - 30);
-            $this->assertTrue($attributes->lastModified() < time() + 30);
+            $attributes = $adapter->last_modified('path.txt');
+            $this->assert_instance_of(File_Attributes::class, $attributes);
+            $this->assert_is_int($attributes->last_modified());
+            $this->assert_true($attributes->last_modified() > time() - 30);
+            $this->assert_true($attributes->last_modified() < time() + 30);
         });
     }
-
     /**
      * @test
      */
     public function failing_to_read_a_non_existing_file_into_a_stream(): void
     {
-        $this->expectException(UnableToReadFile::class);
-
-        $this->adapter()->readStream('something.txt');
+        $this->expect_exception(Unable_To_Read_File::class);
+        $this->adapter()->read_stream('something.txt');
     }
-
     /**
      * @test
      */
     public function failing_to_read_a_non_existing_file(): void
     {
-        $this->expectException(UnableToReadFile::class);
-
+        $this->expect_exception(Unable_To_Read_File::class);
         $this->adapter()->read('something.txt');
     }
-
     /**
      * @test
      */
     public function creating_a_directory(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-
-            $adapter->createDirectory('creating_a_directory/path', new Config());
-
+            $adapter->create_directory('creating_a_directory/path', new Config());
             // Creating a directory should be idempotent.
-            $adapter->createDirectory('creating_a_directory/path', new Config());
-
-            $contents = iterator_to_array($adapter->listContents('creating_a_directory', false));
-            $this->assertCount(1, $contents, $this->formatIncorrectListingCount($contents));
+            $adapter->create_directory('creating_a_directory/path', new Config());
+            $contents = iterator_to_array($adapter->list_contents('creating_a_directory', false));
+            $this->assert_count(1, $contents, $this->format_incorrect_listing_count($contents));
             /** @var DirectoryAttributes $directory */
             $directory = $contents[0];
-            $this->assertInstanceOf(DirectoryAttributes::class, $directory);
-            $this->assertEquals('creating_a_directory/path', $directory->path());
-            $adapter->deleteDirectory('creating_a_directory/path');
+            $this->assert_instance_of(Directory_Attributes::class, $directory);
+            $this->assert_equals('creating_a_directory/path', $directory->path());
+            $adapter->delete_directory('creating_a_directory/path');
         });
     }
-
     /**
      * @test
      */
     public function copying_a_file_with_collision(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write('path.txt', 'new contents', new Config());
             $adapter->write('new-path.txt', 'contents', new Config());
-
             $adapter->copy('path.txt', 'new-path.txt', new Config());
             $contents = $adapter->read('new-path.txt');
-
-            $this->assertEquals('new contents', $contents);
+            $this->assert_equals('new contents', $contents);
         });
     }
-
     /**
      * @test
      */
     public function moving_a_file_with_collision(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write('path.txt', 'new contents', new Config());
             $adapter->write('new-path.txt', 'contents', new Config());
-
             $adapter->move('path.txt', 'new-path.txt', new Config());
-
-            $oldFileExists = $adapter->fileExists('path.txt');
-            $this->assertFalse($oldFileExists);
-
+            $old_file_exists = $adapter->file_exists('path.txt');
+            $this->assert_false($old_file_exists);
             $contents = $adapter->read('new-path.txt');
-            $this->assertEquals('new contents', $contents);
+            $this->assert_equals('new contents', $contents);
         });
     }
-
     /**
      * @test
      */
     public function copying_a_file_with_same_destination(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write('path.txt', 'new contents', new Config());
-
             $adapter->copy('path.txt', 'path.txt', new Config());
             $contents = $adapter->read('path.txt');
-
-            $this->assertEquals('new contents', $contents);
+            $this->assert_equals('new contents', $contents);
         });
     }
-
     /**
      * @test
      */
     public function moving_a_file_with_same_destination(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
             $adapter->write('path.txt', 'new contents', new Config());
-
             $adapter->move('path.txt', 'path.txt', new Config());
-
             $contents = $adapter->read('path.txt');
-            $this->assertEquals('new contents', $contents);
+            $this->assert_equals('new contents', $contents);
         });
     }
-
-    protected function assertFileExistsAtPath(string $path): void
+    protected function assert_file_exists_at_path(string $path): void
     {
-        $this->runScenario(function () use ($path): void {
-            $fileExists = $this->adapter()->fileExists($path);
-            $this->assertTrue($fileExists);
+        $this->run_scenario(function () use ($path): void {
+            $file_exists = $this->adapter()->file_exists($path);
+            $this->assert_true($file_exists);
         });
     }
-
     /**
      * @test
      */
     public function generating_a_public_url(): void
     {
         $adapter = $this->adapter();
-
-        if (! $adapter instanceof PublicUrlGenerator) {
-            $this->markTestSkipped('Adapter does not supply public URls');
+        if (!$adapter instanceof Public_Url_Generator) {
+            $this->mark_test_skipped('Adapter does not supply public URls');
         }
-
         $adapter->write('some/path.txt', 'public contents', new Config(['visibility' => 'public']));
-
-        $url = $adapter->publicUrl('some/path.txt', new Config());
+        $url = $adapter->public_url('some/path.txt', new Config());
         $contents = file_get_contents($url);
-
-        self::assertEquals('public contents', $contents);
+        self::assert_equals('public contents', $contents);
     }
-
     /**
      * @test
      */
     public function generating_a_temporary_url(): void
     {
         $adapter = $this->adapter();
-
-        if (! $adapter instanceof TemporaryUrlGenerator) {
-            $this->markTestSkipped('Adapter does not supply temporary URls');
+        if (!$adapter instanceof Temporary_Url_Generator) {
+            $this->mark_test_skipped('Adapter does not supply temporary URls');
         }
-
         $adapter->write('some/private.txt', 'public contents', new Config(['visibility' => 'private']));
-
-        $expiresAt = (new DateTimeImmutable())->add(DateInterval::createFromDateString('1 minute'));
-        $url = $adapter->temporaryUrl('some/private.txt', $expiresAt, new Config());
+        $expires_at = (new DateTimeImmutable())->add(DateInterval::create_from_date_string('1 minute'));
+        $url = $adapter->temporary_url('some/private.txt', $expires_at, new Config());
         $contents = file_get_contents($url);
-
-        self::assertEquals('public contents', $contents);
+        self::assert_equals('public contents', $contents);
     }
-
     /**
      * @test
      */
     public function get_checksum(): void
     {
         $adapter = $this->adapter();
-
-        if (! $adapter instanceof ChecksumProvider) {
-            $this->markTestSkipped('Adapter does not supply providing checksums');
+        if (!$adapter instanceof Checksum_Provider) {
+            $this->mark_test_skipped('Adapter does not supply providing checksums');
         }
-
         $adapter->write('path.txt', 'foobar', new Config());
-
-        $this->assertSame('3858f62230ac3c915f300c664312c63f', $adapter->checksum('path.txt', new Config()));
+        $this->assert_same('3858f62230ac3c915f300c664312c63f', $adapter->checksum('path.txt', new Config()));
     }
-
     /**
      * @test
      */
     public function cannot_get_checksum_for_non_existent_file(): void
     {
         $adapter = $this->adapter();
-
-        if (! $adapter instanceof ChecksumProvider) {
-            $this->markTestSkipped('Adapter does not supply providing checksums');
+        if (!$adapter instanceof Checksum_Provider) {
+            $this->mark_test_skipped('Adapter does not supply providing checksums');
         }
-
-        $this->expectException(UnableToProvideChecksum::class);
-
+        $this->expect_exception(Unable_To_Provide_Checksum::class);
         $adapter->checksum('path.txt', new Config());
     }
-
     /**
      * @test
      */
     public function cannot_get_checksum_for_directory(): void
     {
         $adapter = $this->adapter();
-
-        if (! $adapter instanceof ChecksumProvider) {
-            $this->markTestSkipped('Adapter does not supply providing checksums');
+        if (!$adapter instanceof Checksum_Provider) {
+            $this->mark_test_skipped('Adapter does not supply providing checksums');
         }
-
-        $adapter->createDirectory('dir', new Config());
-
-        $this->expectException(UnableToProvideChecksum::class);
-
+        $adapter->create_directory('dir', new Config());
+        $this->expect_exception(Unable_To_Provide_Checksum::class);
         $adapter->checksum('dir', new Config());
     }
 }

@@ -1,17 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem\Ftp;
 
 use RuntimeException;
-
-final class UnableToConnectToFtpHost extends RuntimeException implements FtpConnectionException
+final class Unable_To_Connect_To_Ftp_Host extends RuntimeException implements Ftp_Connection_Exception
 {
-    public static function forHost(string $host, int $port, bool $ssl, string $reason = ''): UnableToConnectToFtpHost
+    public static function for_host(string $host, int $port, bool $ssl, string $reason = ''): Unable_To_Connect_To_Ftp_Host
     {
-        $usingSsl = $ssl ? ', using ssl' : '';
-
-        return new UnableToConnectToFtpHost("Unable to connect to host $host at port $port$usingSsl. $reason");
+        $using_ssl = $ssl ? ', using ssl' : '';
+        return new Unable_To_Connect_To_Ftp_Host("Unable to connect to host {$host} at port {$port}{$using_ssl}. {$reason}");
     }
 }

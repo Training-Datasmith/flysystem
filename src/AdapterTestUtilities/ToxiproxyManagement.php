@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Adapter_Test_Utilities;
 
-namespace League\Flysystem\AdapterTestUtilities;
-
-use GuzzleHttp\Client;
-
+use Guzzle_Http\Client;
 /**
  * This class provides a client for the HTTP API provided by the proxy that simulates network issues.
  *
@@ -17,59 +15,40 @@ use GuzzleHttp\Client;
  * @phpstan-type Attributes array{latency?: int, jitter?: int, rate?: int, delay?: int}
  * @phpstan-type Toxic array{name?: string, type: Type, stream?: StreamDirection, toxicity?: float, attributes: Attributes}
  */
-final class ToxiproxyManagement
+final class Toxiproxy_Management
 {
     /** @var Client */
-    private $apiClient;
-
-    public function __construct(Client $apiClient)
+    private $api_client;
+    public function __construct(Client $api_client)
     {
-        $this->apiClient = $apiClient;
+        $this->api_client = $api_client;
     }
-
-    public static function forServer(string $apiUri = 'http://localhost:8474'): self
+    public static function for_server(string $api_uri = 'http://localhost:8474'): self
     {
-        return new self(
-            new Client(
-                [
-                    'base_uri' => $apiUri,
-                    'base_url' => $apiUri, // Compatibility with older versions of Guzzle
-                ]
-            )
-        );
+        return new self(new Client(['base_uri' => $api_uri, 'base_url' => $api_uri]));
     }
-
-    public function removeAllToxics(): void
+    public function remove_all_toxics(): void
     {
-        $this->apiClient->post('/reset');
+        $this->api_client->post('/reset');
     }
-
     /**
      * Simulates a peer reset on the client->server direction.
      *
      * @param RegisteredProxies $proxyName
      */
-    public function resetPeerOnRequest(
-        string $proxyName,
-        int $timeoutInMilliseconds
-    ): void {
-        $configuration = [
-            'type' => 'reset_peer',
-            'stream' => 'upstream',
-            'attributes' => ['timeout' => $timeoutInMilliseconds],
-        ];
-
-        $this->addToxic($proxyName, $configuration);
+    public function reset_peer_on_request(string $proxy_name, int $timeout_in_milliseconds): void
+    {
+        $configuration = ['type' => 'reset_peer', 'stream' => 'upstream', 'attributes' => ['timeout' => $timeout_in_milliseconds]];
+        $this->add_toxic($proxy_name, $configuration);
     }
-
     /**
      * Registers a network toxic for the given proxy.
      *
      * @param RegisteredProxies $proxyName
      * @param Toxic $configuration
      */
-    private function addToxic(string $proxyName, array $configuration): void
+    private function add_toxic(string $proxy_name, array $configuration): void
     {
-        $this->apiClient->post('/proxies/' . $proxyName . '/toxics', ['json' => $configuration]);
+        $this->api_client->post('/proxies/' . $proxy_name . '/toxics', ['json' => $configuration]);
     }
 }

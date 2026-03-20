@@ -1,36 +1,30 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V3;
 
-namespace League\Flysystem\PhpseclibV3;
-
-use League\Flysystem\FilesystemException;
+use League\Flysystem\Filesystem_Exception;
 use RuntimeException;
-
-class UnableToAuthenticate extends RuntimeException implements FilesystemException
+class Unable_To_Authenticate extends RuntimeException implements Filesystem_Exception
 {
-    public function __construct(string $message, private ?string $connectionError = null)
+    public function __construct(string $message, private ?string $connection_error = null)
     {
         parent::__construct($message);
     }
-
-    public static function withPassword(?string $lastError = null): UnableToAuthenticate
+    public static function with_password(?string $last_error = null): Unable_To_Authenticate
     {
-        return new UnableToAuthenticate('Unable to authenticate using a password.', $lastError);
+        return new Unable_To_Authenticate('Unable to authenticate using a password.', $last_error);
     }
-
-    public static function withPrivateKey(?string $lastError = null): UnableToAuthenticate
+    public static function with_private_key(?string $last_error = null): Unable_To_Authenticate
     {
-        return new UnableToAuthenticate('Unable to authenticate using a private key.', $lastError);
+        return new Unable_To_Authenticate('Unable to authenticate using a private key.', $last_error);
     }
-
-    public static function withSshAgent(?string $lastError = null): UnableToAuthenticate
+    public static function with_ssh_agent(?string $last_error = null): Unable_To_Authenticate
     {
-        return new UnableToAuthenticate('Unable to authenticate using an SSH agent.', $lastError);
+        return new Unable_To_Authenticate('Unable to authenticate using an SSH agent.', $last_error);
     }
-
-    public function connectionError(): ?string
+    public function connection_error(): ?string
     {
-        return $this->connectionError;
+        return $this->connection_error;
     }
 }

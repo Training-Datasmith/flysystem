@@ -1,109 +1,88 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\AwsS3V3;
+declare (strict_types=1);
+namespace League\Flysystem\Aws_S3v3;
 
 use Aws\Result;
 use Aws\S3\S3Client;
-use Aws\S3\S3ClientInterface;
+use Aws\S3\S3client_Interface;
 use Exception;
 use Generator;
-
 use function getenv;
 use function iterator_to_array;
-
-use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
-use League\Flysystem\ChecksumAlgoIsNotSupported;
+use League\Flysystem\Adapter_Test_Utilities\Filesystem_Adapter_Test_Case;
+use League\Flysystem\Checksum_Algo_Is_Not_Supported;
 use League\Flysystem\Config;
-use League\Flysystem\FileAttributes;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\PathPrefixer;
-use League\Flysystem\StorageAttributes;
-use League\Flysystem\UnableToCheckFileExistence;
-use League\Flysystem\UnableToDeleteFile;
-use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToRetrieveMetadata;
-use League\Flysystem\UnableToWriteFile;
-
+use League\Flysystem\File_Attributes;
+use League\Flysystem\Filesystem_Adapter;
+use League\Flysystem\Path_Prefixer;
+use League\Flysystem\Storage_Attributes;
+use League\Flysystem\Unable_To_Check_File_Existence;
+use League\Flysystem\Unable_To_Delete_File;
+use League\Flysystem\Unable_To_Move_File;
+use League\Flysystem\Unable_To_Retrieve_Metadata;
+use League\Flysystem\Unable_To_Write_File;
 use League\Flysystem\Visibility;
 use RuntimeException;
-
 /**
  * @group aws
  */
-class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
+class Aws_S3v3adapter_Test extends Filesystem_Adapter_Test_Case
 {
-    private bool $shouldCleanUp = false;
-
+    private bool $should_clean_up = false;
     /**
      * @var string
      */
-    private static $adapterPrefix = 'test-prefix';
-
+    private static $adapter_prefix = 'test-prefix';
     /**
      * @var S3ClientInterface|null
      */
     private static ?\Aws\S3\S3Client $s3Client = null;
-
-    private static ?\League\Flysystem\AwsS3V3\S3ClientStub $stubS3Client = null;
-
-    public static function setUpBeforeClass(): void
+    private static ?\League\Flysystem\Aws_S3v3\S3client_Stub $stub_s3client = null;
+    public static function set_up_before_class(): void
     {
-        static::$adapterPrefix = getenv('FLYSYSTEM_AWS_S3_PREFIX') ?: 'ci/' . bin2hex(random_bytes(10));
+        static::$adapter_prefix = getenv('FLYSYSTEM_AWS_S3_PREFIX') ?: 'ci/' . bin2hex(random_bytes(10));
     }
-
-    protected function tearDown(): void
+    protected function tear_down(): void
     {
-        if (! $this->shouldCleanUp) {
+        if (!$this->should_clean_up) {
             return;
         }
-
         $adapter = $this->adapter();
-        $adapter->deleteDirectory('/');
+        $adapter->delete_directory('/');
         /** @var StorageAttributes[] $listing */
-        $listing = $adapter->listContents('', false);
-
+        $listing = $adapter->list_contents('', false);
         foreach ($listing as $item) {
-            if ($item->isFile()) {
+            if ($item->is_file()) {
                 $adapter->delete($item->path());
             } else {
-                $adapter->deleteDirectory($item->path());
+                $adapter->delete_directory($item->path());
             }
         }
-
         self::$adapter = null;
     }
-
-    protected function setUp(): void
+    protected function set_up(): void
     {
         if (PHP_VERSION_ID < 80100) {
-            $this->markTestSkipped('AWS does not support this anymore.');
+            $this->mark_test_skipped('AWS does not support this anymore.');
         }
-
-        parent::setUp();
+        parent::set_up();
     }
-
-    private static function s3Client(): S3ClientInterface
+    private static function s3Client(): S3client_Interface
     {
-        if (static::$s3Client instanceof S3ClientInterface) {
+        if (static::$s3Client instanceof S3client_Interface) {
             return static::$s3Client;
         }
-
         $key = getenv('FLYSYSTEM_AWS_S3_KEY');
         $secret = getenv('FLYSYSTEM_AWS_S3_SECRET');
         $bucket = getenv('FLYSYSTEM_AWS_S3_BUCKET');
         $region = getenv('FLYSYSTEM_AWS_S3_REGION') ?: 'eu-central-1';
-
-        if (! $key || ! $secret || ! $bucket) {
-            self::markTestSkipped('No AWS credentials present for testing.');
+        if (!$key || !$secret || !$bucket) {
+            self::mark_test_skipped('No AWS credentials present for testing.');
         }
-
         $options = ['version' => 'latest', 'credentials' => compact('key', 'secret'), 'region' => $region];
-
         return static::$s3Client = new S3Client($options);
     }
-
     /**
      * @test
      */
@@ -111,10 +90,9 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('some/path.txt', 'contents', new Config(['ContentType' => 'text/plain+special']));
-        $mimeType = $adapter->mimeType('some/path.txt')->mimeType();
-        $this->assertEquals('text/plain+special', $mimeType);
+        $mime_type = $adapter->mime_type('some/path.txt')->mime_type();
+        $this->assert_equals('text/plain+special', $mime_type);
     }
-
     /**
      * @test
      */
@@ -122,10 +100,9 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('some/path.txt', 'contents', new Config(['mimetype' => 'text/plain+special']));
-        $mimeType = $adapter->mimeType('some/path.txt')->mimeType();
-        $this->assertEquals('text/plain+special', $mimeType);
+        $mime_type = $adapter->mime_type('some/path.txt')->mime_type();
+        $this->assert_equals('text/plain+special', $mime_type);
     }
-
     /**
      * @test
      *
@@ -134,12 +111,10 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     public function issue_291(): void
     {
         $adapter = $this->adapter();
-        $adapter->createDirectory('directory', new Config());
-        $listing = iterator_to_array($adapter->listContents('directory', true));
-
-        self::assertCount(0, $listing);
+        $adapter->create_directory('directory', new Config());
+        $listing = iterator_to_array($adapter->list_contents('directory', true));
+        self::assert_count(0, $listing);
     }
-
     /**
      * @test
      */
@@ -148,19 +123,16 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
         $adapter = $this->adapter();
         $adapter->write('something/0/here.txt', 'contents', new Config());
         $adapter->write('something/1/also/here.txt', 'contents', new Config());
-
-        $contents = iterator_to_array($adapter->listContents('', true));
-
-        $this->assertCount(2, $contents);
-        $this->assertContainsOnlyInstancesOf(FileAttributes::class, $contents);
+        $contents = iterator_to_array($adapter->list_contents('', true));
+        $this->assert_count(2, $contents);
+        $this->assert_contains_only_instances_of(File_Attributes::class, $contents);
         /** @var FileAttributes $file */
         $file = $contents[0];
-        $this->assertEquals('something/0/here.txt', $file->path());
+        $this->assert_equals('something/0/here.txt', $file->path());
         /** @var FileAttributes $file */
         $file = $contents[1];
-        $this->assertEquals('something/1/also/here.txt', $file->path());
+        $this->assert_equals('something/1/also/here.txt', $file->path());
     }
-
     /**
      * @test
      */
@@ -168,13 +140,10 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('source.txt', 'contents to be copied', new Config());
-        static::$stubS3Client->failOnNextCopy();
-
-        $this->expectException(UnableToMoveFile::class);
-
+        static::$stub_s3client->fail_on_next_copy();
+        $this->expect_exception(Unable_To_Move_File::class);
         $adapter->move('source.txt', 'destination.txt', new Config());
     }
-
     /**
      * @test
      *
@@ -184,89 +153,67 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('KmFVvKqo/QLMExy2U/620ff60c8a154.pdf', 'pdf content', new Config());
-
-        self::assertTrue($adapter->directoryExists('KmFVvKqo'));
+        self::assert_true($adapter->directory_exists('KmFVvKqo'));
     }
-
     /**
      * @test
      */
     public function failing_to_write_a_file(): void
     {
         $adapter = $this->adapter();
-        static::$stubS3Client->throwDuringUpload(new RuntimeException('Oh no'));
-
-        $this->expectException(UnableToWriteFile::class);
-
+        static::$stub_s3client->throw_during_upload(new RuntimeException('Oh no'));
+        $this->expect_exception(Unable_To_Write_File::class);
         $adapter->write('path.txt', 'contents', new Config());
     }
-
     /**
      * @test
      */
     public function failing_to_delete_a_file(): void
     {
         $adapter = $this->adapter();
-        static::$stubS3Client->throwExceptionWhenExecutingCommand('DeleteObject');
-
-        $this->expectException(UnableToDeleteFile::class);
-
+        static::$stub_s3client->throw_exception_when_executing_command('DeleteObject');
+        $this->expect_exception(Unable_To_Delete_File::class);
         $adapter->delete('path.txt');
     }
-
     /**
      * @test
      */
     public function fetching_unknown_mime_type_of_a_file(): void
     {
         $this->adapter();
-        $result = new Result([
-            'Key' => static::$adapterPrefix . '/unknown-mime-type.md5',
-        ]);
-        static::$stubS3Client->stageResultForCommand('HeadObject', $result);
-
+        $result = new Result(['Key' => static::$adapter_prefix . '/unknown-mime-type.md5']);
+        static::$stub_s3client->stage_result_for_command('HeadObject', $result);
         parent::fetching_unknown_mime_type_of_a_file();
     }
-
     /**
      * @test
      *
      * @dataProvider dpFailingMetadataGetters
      */
-    public function failing_to_retrieve_metadata(Exception $exception, string $getterName): void
+    public function failing_to_retrieve_metadata(Exception $exception, string $getter_name): void
     {
         $adapter = $this->adapter();
-        $result = new Result([
-             'Key' => static::$adapterPrefix . '/filename.txt',
-        ]);
-        static::$stubS3Client->stageResultForCommand('HeadObject', $result);
-
-        $this->expectExceptionObject($exception);
-
-        $adapter->{$getterName}('filename.txt');
+        $result = new Result(['Key' => static::$adapter_prefix . '/filename.txt']);
+        static::$stub_s3client->stage_result_for_command('HeadObject', $result);
+        $this->expect_exception_object($exception);
+        $adapter->{$getter_name}('filename.txt');
     }
-
-    public static function dpFailingMetadataGetters(): iterable
+    public static function dp_failing_metadata_getters(): iterable
     {
-        yield 'mimeType' => [UnableToRetrieveMetadata::mimeType('filename.txt'), 'mimeType'];
-        yield 'lastModified' => [UnableToRetrieveMetadata::lastModified('filename.txt'), 'lastModified'];
-        yield 'fileSize' => [UnableToRetrieveMetadata::fileSize('filename.txt'), 'fileSize'];
+        yield 'mimeType' => [Unable_To_Retrieve_Metadata::mime_type('filename.txt'), 'mimeType'];
+        yield 'lastModified' => [Unable_To_Retrieve_Metadata::last_modified('filename.txt'), 'lastModified'];
+        yield 'fileSize' => [Unable_To_Retrieve_Metadata::file_size('filename.txt'), 'fileSize'];
     }
-
     /**
      * @test
      */
     public function failing_to_check_for_file_existence(): void
     {
         $adapter = $this->adapter();
-
-        static::$stubS3Client->throw500ExceptionWhenExecutingCommand('HeadObject');
-
-        $this->expectException(UnableToCheckFileExistence::class);
-
-        $adapter->fileExists('something-that-does-exist.txt');
+        static::$stub_s3client->throw500exception_when_executing_command('HeadObject');
+        $this->expect_exception(Unable_To_Check_File_Existence::class);
+        $adapter->file_exists('something-that-does-exist.txt');
     }
-
     /**
      * @test
      *
@@ -275,25 +222,20 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     public function streaming_reads_are_not_seekable_and_non_streaming_are(bool $streaming, bool $seekable): void
     {
         if (getenv('COMPOSER_OPTS') === '--prefer-lowest') {
-            $this->markTestSkipped('The SDK does not support streaming in low versions.');
+            $this->mark_test_skipped('The SDK does not support streaming in low versions.');
         }
-
-        $adapter = $this->useAdapter($this->createFilesystemAdapter($streaming));
-        $this->givenWeHaveAnExistingFile('path.txt');
-
-        $resource = $adapter->readStream('path.txt');
+        $adapter = $this->use_adapter($this->create_filesystem_adapter($streaming));
+        $this->given_we_have_an_existing_file('path.txt');
+        $resource = $adapter->read_stream('path.txt');
         $metadata = stream_get_meta_data($resource);
         fclose($resource);
-
-        $this->assertEquals($seekable, $metadata['seekable']);
+        $this->assert_equals($seekable, $metadata['seekable']);
     }
-
-    public static function casesWhereHttpStreamingInfluencesSeekability(): Generator
+    public static function cases_where_http_streaming_influences_seekability(): Generator
     {
         yield 'not streaming reads have seekable stream' => [false, true];
         yield 'streaming reads have non-seekable stream' => [true, false];
     }
-
     /**
      * @test
      *
@@ -301,16 +243,13 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
      */
     public function configuring_http_streaming_via_options(bool $streaming): void
     {
-        $adapter = $this->useAdapter($this->createFilesystemAdapter($streaming, ['@http' => ['stream' => false]]));
-        $this->givenWeHaveAnExistingFile('path.txt');
-
-        $resource = $adapter->readStream('path.txt');
+        $adapter = $this->use_adapter($this->create_filesystem_adapter($streaming, ['@http' => ['stream' => false]]));
+        $this->given_we_have_an_existing_file('path.txt');
+        $resource = $adapter->read_stream('path.txt');
         $metadata = stream_get_meta_data($resource);
         fclose($resource);
-
-        $this->assertTrue($metadata['seekable']);
+        $this->assert_true($metadata['seekable']);
     }
-
     /**
      * @test
      *
@@ -318,13 +257,11 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
      */
     public function use_globally_configured_options(bool $streaming): void
     {
-        $adapter = $this->useAdapter($this->createFilesystemAdapter($streaming, ['ContentType' => 'text/plain+special']));
-        $this->givenWeHaveAnExistingFile('path.txt');
-
-        $mimeType = $adapter->mimeType('path.txt')->mimeType();
-        $this->assertSame('text/plain+special', $mimeType);
+        $adapter = $this->use_adapter($this->create_filesystem_adapter($streaming, ['ContentType' => 'text/plain+special']));
+        $this->given_we_have_an_existing_file('path.txt');
+        $mime_type = $adapter->mime_type('path.txt')->mime_type();
+        $this->assert_same('text/plain+special', $mime_type);
     }
-
     /**
      * @test
      */
@@ -332,16 +269,12 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('source.txt', 'contents to be moved', new Config(['ContentType' => 'text/plain']));
-        $mimeTypeSource = $adapter->mimeType('source.txt')->mimeType();
-        $this->assertSame('text/plain', $mimeTypeSource);
-
-        $adapter->move('source.txt', 'destination.txt', new Config(
-            ['ContentType' => 'text/plain+special', 'MetadataDirective' => 'REPLACE']
-        ));
-        $mimeTypeDestination = $adapter->mimeType('destination.txt')->mimeType();
-        $this->assertSame('text/plain+special', $mimeTypeDestination);
+        $mime_type_source = $adapter->mime_type('source.txt')->mime_type();
+        $this->assert_same('text/plain', $mime_type_source);
+        $adapter->move('source.txt', 'destination.txt', new Config(['ContentType' => 'text/plain+special', 'MetadataDirective' => 'REPLACE']));
+        $mime_type_destination = $adapter->mime_type('destination.txt')->mime_type();
+        $this->assert_same('text/plain+special', $mime_type_destination);
     }
-
     /**
      * @test
      */
@@ -349,16 +282,12 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('source.txt', 'contents to be moved', new Config(['ContentType' => 'text/plain']));
-        $mimeTypeSource = $adapter->mimeType('source.txt')->mimeType();
-        $this->assertSame('text/plain', $mimeTypeSource);
-
-        $adapter->move('source.txt', 'destination.txt', new Config(
-            ['ContentType' => 'text/plain+special']
-        ));
-        $mimeTypeDestination = $adapter->mimeType('destination.txt')->mimeType();
-        $this->assertSame('text/plain', $mimeTypeDestination);
+        $mime_type_source = $adapter->mime_type('source.txt')->mime_type();
+        $this->assert_same('text/plain', $mime_type_source);
+        $adapter->move('source.txt', 'destination.txt', new Config(['ContentType' => 'text/plain+special']));
+        $mime_type_destination = $adapter->mime_type('destination.txt')->mime_type();
+        $this->assert_same('text/plain', $mime_type_destination);
     }
-
     /**
      * @test
      */
@@ -366,60 +295,42 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('source.txt', 'contents to be moved', new Config(['ContentType' => 'text/plain']));
-        $mimeTypeSource = $adapter->mimeType('source.txt')->mimeType();
-        $this->assertSame('text/plain', $mimeTypeSource);
-
-        $adapter->copy('source.txt', 'destination.txt', new Config(
-            ['ContentType' => 'text/plain+special', 'MetadataDirective' => 'REPLACE']
-        ));
-        $mimeTypeDestination = $adapter->mimeType('destination.txt')->mimeType();
-        $this->assertSame('text/plain+special', $mimeTypeDestination);
+        $mime_type_source = $adapter->mime_type('source.txt')->mime_type();
+        $this->assert_same('text/plain', $mime_type_source);
+        $adapter->copy('source.txt', 'destination.txt', new Config(['ContentType' => 'text/plain+special', 'MetadataDirective' => 'REPLACE']));
+        $mime_type_destination = $adapter->mime_type('destination.txt')->mime_type();
+        $this->assert_same('text/plain+special', $mime_type_destination);
     }
-
     /**
      * @test
      */
     public function setting_acl_via_options(): void
     {
         $adapter = $this->adapter();
-        $prefixer = new PathPrefixer(static::$adapterPrefix);
-        $prefixedPath = $prefixer->prefixPath('path.txt');
-
+        $prefixer = new Path_Prefixer(static::$adapter_prefix);
+        $prefixed_path = $prefixer->prefix_path('path.txt');
         $adapter->write('path.txt', 'contents', new Config(['ACL' => 'bucket-owner-full-control']));
-        $arguments = ['Bucket' => getenv('FLYSYSTEM_AWS_S3_BUCKET'), 'Key' => $prefixedPath];
-        $command = static::$s3Client->getCommand('GetObjectAcl', $arguments);
-        $response = static::$s3Client->execute($command)->toArray();
+        $arguments = ['Bucket' => getenv('FLYSYSTEM_AWS_S3_BUCKET'), 'Key' => $prefixed_path];
+        $command = static::$s3Client->get_command('GetObjectAcl', $arguments);
+        $response = static::$s3Client->execute($command)->to_array();
         $permission = $response['Grants'][0]['Permission'];
-
-        self::assertEquals('FULL_CONTROL', $permission);
+        self::assert_equals('FULL_CONTROL', $permission);
     }
-
     /**
      * @test
      */
     public function moving_a_file_with_visibility(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $adapter->write(
-                'source.txt',
-                'contents to be copied',
-                new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC])
-            );
+            $adapter->write('source.txt', 'contents to be copied', new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC]));
             $adapter->move('source.txt', 'destination.txt', new Config([Config::OPTION_VISIBILITY => Visibility::PRIVATE]));
-            $this->assertFalse(
-                $adapter->fileExists('source.txt'),
-                'After moving a file should no longer exist in the original location.'
-            );
-            $this->assertTrue(
-                $adapter->fileExists('destination.txt'),
-                'After moving, a file should be present at the new location.'
-            );
-            $this->assertEquals(Visibility::PRIVATE, $adapter->visibility('destination.txt')->visibility());
-            $this->assertEquals('contents to be copied', $adapter->read('destination.txt'));
+            $this->assert_false($adapter->file_exists('source.txt'), 'After moving a file should no longer exist in the original location.');
+            $this->assert_true($adapter->file_exists('destination.txt'), 'After moving, a file should be present at the new location.');
+            $this->assert_equals(Visibility::PRIVATE, $adapter->visibility('destination.txt')->visibility());
+            $this->assert_equals('contents to be copied', $adapter->read('destination.txt'));
         });
     }
-
     /**
      * @test
      */
@@ -427,41 +338,30 @@ class AwsS3V3AdapterTest extends FilesystemAdapterTestCase
     {
         /** @var AwsS3V3Adapter $adapter */
         $adapter = $this->adapter();
-
-        $this->expectException(ChecksumAlgoIsNotSupported::class);
-
+        $this->expect_exception(Checksum_Algo_Is_Not_Supported::class);
         $adapter->checksum('something', new Config(['checksum_algo' => 'md5']));
     }
-
     /**
      * @test
      */
     public function copying_a_file_with_visibility(): void
     {
-        $this->runScenario(function (): void {
+        $this->run_scenario(function (): void {
             $adapter = $this->adapter();
-            $adapter->write(
-                'source.txt',
-                'contents to be copied',
-                new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC])
-            );
-
+            $adapter->write('source.txt', 'contents to be copied', new Config([Config::OPTION_VISIBILITY => Visibility::PUBLIC]));
             $adapter->copy('source.txt', 'destination.txt', new Config([Config::OPTION_VISIBILITY => Visibility::PRIVATE]));
-
-            $this->assertTrue($adapter->fileExists('source.txt'));
-            $this->assertTrue($adapter->fileExists('destination.txt'));
-            $this->assertEquals(Visibility::PRIVATE, $adapter->visibility('destination.txt')->visibility());
-            $this->assertEquals('contents to be copied', $adapter->read('destination.txt'));
+            $this->assert_true($adapter->file_exists('source.txt'));
+            $this->assert_true($adapter->file_exists('destination.txt'));
+            $this->assert_equals(Visibility::PRIVATE, $adapter->visibility('destination.txt')->visibility());
+            $this->assert_equals('contents to be copied', $adapter->read('destination.txt'));
         });
     }
-
-    protected static function createFilesystemAdapter(bool $streaming = true, array $options = []): FilesystemAdapter
+    protected static function create_filesystem_adapter(bool $streaming = true, array $options = []): Filesystem_Adapter
     {
-        static::$stubS3Client = new S3ClientStub(static::s3Client());
+        static::$stub_s3client = new S3client_Stub(static::s3Client());
         /** @var string $bucket */
         $bucket = getenv('FLYSYSTEM_AWS_S3_BUCKET');
-        $prefix = static::$adapterPrefix;
-
-        return new AwsS3V3Adapter(static::$stubS3Client, $bucket, $prefix, null, null, $options, $streaming);
+        $prefix = static::$adapter_prefix;
+        return new Aws_S3v3adapter(static::$stub_s3client, $bucket, $prefix, null, null, $options, $streaming);
     }
 }

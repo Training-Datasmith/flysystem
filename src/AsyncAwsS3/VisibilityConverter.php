@@ -1,19 +1,15 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Async_Aws_S3;
 
-namespace League\Flysystem\AsyncAwsS3;
-
-use AsyncAws\S3\ValueObject\Grant;
-
-interface VisibilityConverter
+use Async_Aws\S3\Value_Object\Grant;
+interface Visibility_Converter
 {
-    public function visibilityToAcl(string $visibility): string;
-
+    public function visibility_to_acl(string $visibility): string;
     /**
      * @param Grant[] $grants
      */
-    public function aclToVisibility(array $grants): string;
-
-    public function defaultForDirectories(): string;
+    public function acl_to_visibility(array $grants): string;
+    public function default_for_directories(): string;
 }

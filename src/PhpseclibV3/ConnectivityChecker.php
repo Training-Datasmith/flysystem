@@ -1,12 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV3;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V3;
 
 use phpseclib3\Net\SFTP;
-
-interface ConnectivityChecker
+interface Connectivity_Checker
 {
-    public function isConnected(SFTP $connection): bool;
+    public function is_connected(SFTP $connection): bool;
 }

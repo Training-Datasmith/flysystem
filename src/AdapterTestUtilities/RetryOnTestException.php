@@ -1,94 +1,77 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Adapter_Test_Utilities;
 
-namespace League\Flysystem\AdapterTestUtilities;
-
-use League\Flysystem\FilesystemException;
-
+use League\Flysystem\Filesystem_Exception;
 use const PHP_EOL;
 use const STDOUT;
-
 use Throwable;
-
 /**
  * @codeCoverageIgnore
  */
-trait RetryOnTestException
+trait Retry_On_Test_Exception
 {
     /**
      * @var string
      */
-    protected $exceptionTypeToRetryOn;
-
+    protected $exception_type_to_retry_on;
     /**
      * @var int
      */
-    protected $timeoutForExceptionRetry = 2;
-
-    protected function retryOnException(string $className, int $timout = 2): void
+    protected $timeout_for_exception_retry = 2;
+    protected function retry_on_exception(string $class_name, int $timout = 2): void
     {
-        $this->exceptionTypeToRetryOn = $className;
-        $this->timeoutForExceptionRetry = $timout;
+        $this->exception_type_to_retry_on = $class_name;
+        $this->timeout_for_exception_retry = $timout;
     }
-
-    protected function retryScenarioOnException(string $className, callable $scenario, int $timeout = 2): void
+    protected function retry_scenario_on_exception(string $class_name, callable $scenario, int $timeout = 2): void
     {
-        $this->retryOnException($className, $timeout);
-        $this->runScenario($scenario);
+        $this->retry_on_exception($class_name, $timeout);
+        $this->run_scenario($scenario);
     }
-
-    protected function dontRetryOnException(): void
+    protected function dont_retry_on_exception(): void
     {
-        $this->exceptionTypeToRetryOn = null;
+        $this->exception_type_to_retry_on = null;
     }
-
     /**
      * @internal
      *
      * @throws Throwable
      */
-    protected function runSetup(callable $scenario): void
+    protected function run_setup(callable $scenario): void
     {
-        $previousException = $this->exceptionTypeToRetryOn;
-        $previousTimeout = $this->timeoutForExceptionRetry;
-        $this->retryOnException(FilesystemException::class);
-
+        $previous_exception = $this->exception_type_to_retry_on;
+        $previous_timeout = $this->timeout_for_exception_retry;
+        $this->retry_on_exception(Filesystem_Exception::class);
         try {
-            $this->runScenario($scenario);
+            $this->run_scenario($scenario);
         } finally {
-            $this->exceptionTypeToRetryOn = $previousException;
-            $this->timeoutForExceptionRetry = $previousTimeout;
+            $this->exception_type_to_retry_on = $previous_exception;
+            $this->timeout_for_exception_retry = $previous_timeout;
         }
     }
-
-    protected function runScenario(callable $scenario): void
+    protected function run_scenario(callable $scenario): void
     {
-        if ($this->exceptionTypeToRetryOn === null) {
+        if ($this->exception_type_to_retry_on === null) {
             $scenario();
-
             return;
         }
-
-        $firstTryAt = \time();
-        $lastTryAt = $firstTryAt + 60;
-
-        while (time() <= $lastTryAt) {
+        $first_try_at = \time();
+        $last_try_at = $first_try_at + 60;
+        while (time() <= $last_try_at) {
             try {
                 $scenario();
-
                 return;
             } catch (Throwable $exception) {
-                if (! $exception instanceof $this->exceptionTypeToRetryOn) {
+                if (!$exception instanceof $this->exception_type_to_retry_on) {
                     throw $exception;
                 }
                 fwrite(STDOUT, 'Retrying ...' . PHP_EOL);
-                sleep($this->timeoutForExceptionRetry);
+                sleep($this->timeout_for_exception_retry);
             }
         }
-
-        $this->exceptionTypeToRetryOn = null;
-
+        $this->exception_type_to_retry_on = null;
         if (isset($exception) && $exception instanceof Throwable) {
             throw $exception;
         }

@@ -1,125 +1,98 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV2;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V2;
 
 use function class_exists;
-
-use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
+use League\Flysystem\Adapter_Test_Utilities\Filesystem_Adapter_Test_Case;
 use League\Flysystem\Config;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\UnableToCopyFile;
-use League\Flysystem\UnableToCreateDirectory;
-use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToReadFile;
-
-use League\Flysystem\UnableToWriteFile;
-
+use League\Flysystem\Filesystem_Adapter;
+use League\Flysystem\Unable_To_Copy_File;
+use League\Flysystem\Unable_To_Create_Directory;
+use League\Flysystem\Unable_To_Move_File;
+use League\Flysystem\Unable_To_Read_File;
+use League\Flysystem\Unable_To_Write_File;
 /**
  * @group sftp
  * @group legacy
  */
-class SftpAdapterTest extends FilesystemAdapterTestCase
+class Sftp_Adapter_Test extends Filesystem_Adapter_Test_Case
 {
-    private static ?\League\Flysystem\PhpseclibV2\StubSftpConnectionProvider $connectionProvider = null;
-
+    private static ?\League\Flysystem\Phpseclib_V2\Stub_Sftp_Connection_Provider $connection_provider = null;
     /**
      * @var SftpStub
      */
     private $connection;
-
-    public static function setUpBeforeClass(): void
+    public static function set_up_before_class(): void
     {
-        if (! class_exists('phpseclib\Net\SFTP')) {
-            self::markTestSkipped('PHPSecLib V2 is not installed');
+        if (!class_exists('phpseclib\Net\SFTP')) {
+            self::mark_test_skipped('PHPSecLib V2 is not installed');
         }
     }
-
-    protected static function createFilesystemAdapter(): FilesystemAdapter
+    protected static function create_filesystem_adapter(): Filesystem_Adapter
     {
-        return new SftpAdapter(
-            static::connectionProvider(),
-            '/upload'
-        );
+        return new Sftp_Adapter(static::connection_provider(), '/upload');
     }
-
     /**
      * @before
      */
-    public function setupConnectionProvider(): void
+    public function setup_connection_provider(): void
     {
         /** @var SftpStub $connection */
-        $connection = static::connectionProvider()->provideConnection();
+        $connection = static::connection_provider()->provide_connection();
         $this->connection = $connection;
         $this->connection->reset();
     }
-
     /**
      * @test
      */
     public function failing_to_create_a_directory(): void
     {
-        $adapter = $this->adapterWithInvalidRoot();
-
-        $this->expectException(UnableToCreateDirectory::class);
-
-        $adapter->createDirectory('not-gonna-happen', new Config());
+        $adapter = $this->adapter_with_invalid_root();
+        $this->expect_exception(Unable_To_Create_Directory::class);
+        $adapter->create_directory('not-gonna-happen', new Config());
     }
-
     /**
      * @test
      */
     public function failing_to_write_a_file(): void
     {
-        $adapter = $this->adapterWithInvalidRoot();
-
-        $this->expectException(UnableToWriteFile::class);
-
+        $adapter = $this->adapter_with_invalid_root();
+        $this->expect_exception(Unable_To_Write_File::class);
         $adapter->write('not-gonna-happen', 'na-ah', new Config());
     }
-
     /**
      * @test
      */
     public function failing_to_read_a_file(): void
     {
-        $adapter = $this->adapterWithInvalidRoot();
-
-        $this->expectException(UnableToReadFile::class);
-
+        $adapter = $this->adapter_with_invalid_root();
+        $this->expect_exception(Unable_To_Read_File::class);
         $adapter->read('not-gonna-happen');
     }
-
     /**
      * @test
      */
     public function failing_to_read_a_file_as_a_stream(): void
     {
-        $adapter = $this->adapterWithInvalidRoot();
-
-        $this->expectException(UnableToReadFile::class);
-
-        $adapter->readStream('not-gonna-happen');
+        $adapter = $this->adapter_with_invalid_root();
+        $this->expect_exception(Unable_To_Read_File::class);
+        $adapter->read_stream('not-gonna-happen');
     }
-
     /**
      * @test
      */
     public function failing_to_write_a_file_using_streams(): void
     {
-        $adapter = $this->adapterWithInvalidRoot();
-        $writeHandle = stream_with_contents('contents');
-
-        $this->expectException(UnableToWriteFile::class);
-
+        $adapter = $this->adapter_with_invalid_root();
+        $write_handle = stream_with_contents('contents');
+        $this->expect_exception(Unable_To_Write_File::class);
         try {
-            $adapter->writeStream('not-gonna-happen', $writeHandle, new Config());
+            $adapter->write_stream('not-gonna-happen', $write_handle, new Config());
         } finally {
-            fclose($writeHandle);
+            fclose($write_handle);
         }
     }
-
     /**
      * @test
      */
@@ -127,103 +100,81 @@ class SftpAdapterTest extends FilesystemAdapterTestCase
     {
         $adapter = $this->adapter();
         $adapter->write('file.svg', (string) file_get_contents(__DIR__ . '/../AdapterTestUtilities/test_files/flysystem.svg'), new Config());
-
-        $mimeType = $adapter->mimeType('file.svg');
-
-        $this->assertStringStartsWith('image/svg+xml', $mimeType->mimeType());
+        $mime_type = $adapter->mime_type('file.svg');
+        $this->assert_string_starts_with('image/svg+xml', $mime_type->mime_type());
     }
-
     /**
      * @test
      */
     public function failing_to_chmod_when_writing(): void
     {
-        $this->connection->failOnChmod('/upload/path.txt');
+        $this->connection->fail_on_chmod('/upload/path.txt');
         $adapter = $this->adapter();
-
-        $this->expectException(UnableToWriteFile::class);
-
+        $this->expect_exception(Unable_To_Write_File::class);
         $adapter->write('path.txt', 'contents', new Config(['visibility' => 'public']));
     }
-
     /**
      * @test
      */
     public function failing_to_move_a_file_cause_the_parent_directory_cant_be_created(): void
     {
-        $adapter = $this->adapterWithInvalidRoot();
-
-        $this->expectException(UnableToMoveFile::class);
-
+        $adapter = $this->adapter_with_invalid_root();
+        $this->expect_exception(Unable_To_Move_File::class);
         $adapter->move('path.txt', 'new-path.txt', new Config());
     }
-
     /**
      * @test
      */
     public function failing_to_copy_a_file(): void
     {
-        $adapter = $this->adapterWithInvalidRoot();
-
-        $this->expectException(UnableToCopyFile::class);
-
+        $adapter = $this->adapter_with_invalid_root();
+        $this->expect_exception(Unable_To_Copy_File::class);
         $adapter->copy('path.txt', 'new-path.txt', new Config());
     }
-
     /**
      * @test
      */
     public function failing_to_copy_a_file_because_writing_fails(): void
     {
-        $this->givenWeHaveAnExistingFile('path.txt', 'contents');
+        $this->given_we_have_an_existing_file('path.txt', 'contents');
         $adapter = $this->adapter();
-        $this->connection->failOnPut('/upload/new-path.txt');
-
-        $this->expectException(UnableToCopyFile::class);
-
+        $this->connection->fail_on_put('/upload/new-path.txt');
+        $this->expect_exception(Unable_To_Copy_File::class);
         $adapter->copy('path.txt', 'new-path.txt', new Config());
     }
-
     /**
      * @test
      */
     public function failing_to_chmod_when_writing_with_a_stream(): void
     {
-        $writeStream = stream_with_contents('contents');
-        $this->connection->failOnChmod('/upload/path.txt');
+        $write_stream = stream_with_contents('contents');
+        $this->connection->fail_on_chmod('/upload/path.txt');
         $adapter = $this->adapter();
-
-        $this->expectException(UnableToWriteFile::class);
-
+        $this->expect_exception(Unable_To_Write_File::class);
         try {
-            $adapter->writeStream('path.txt', $writeStream, new Config(['visibility' => 'public']));
+            $adapter->write_stream('path.txt', $write_stream, new Config(['visibility' => 'public']));
         } finally {
-            @fclose($writeStream);
+            @fclose($write_stream);
         }
     }
-
     /**
      * @test
      */
     public function list_contents_directory_does_not_exist(): void
     {
-        $contents = $this->adapter()->listContents('/does_not_exist', false);
-        $this->assertCount(0, iterator_to_array($contents));
+        $contents = $this->adapter()->list_contents('/does_not_exist', false);
+        $this->assert_count(0, iterator_to_array($contents));
     }
-
-    private static function connectionProvider(): ConnectionProvider
+    private static function connection_provider(): Connection_Provider
     {
-        if (! static::$connectionProvider instanceof ConnectionProvider) {
-            static::$connectionProvider = new StubSftpConnectionProvider('localhost', 'foo', 'pass', 2222);
+        if (!static::$connection_provider instanceof Connection_Provider) {
+            static::$connection_provider = new Stub_Sftp_Connection_Provider('localhost', 'foo', 'pass', 2222);
         }
-
-        return static::$connectionProvider;
+        return static::$connection_provider;
     }
-
-    private function adapterWithInvalidRoot(): SftpAdapter
+    private function adapter_with_invalid_root(): Sftp_Adapter
     {
-        $provider = static::connectionProvider();
-
-        return new SftpAdapter($provider, '/invalid');
+        $provider = static::connection_provider();
+        return new Sftp_Adapter($provider, '/invalid');
     }
 }

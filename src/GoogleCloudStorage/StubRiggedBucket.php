@@ -1,50 +1,39 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\GoogleCloudStorage;
+declare (strict_types=1);
+namespace League\Flysystem\Google_Cloud_Storage;
 
 use Google\Cloud\Storage\Bucket;
 use LogicException;
 use Throwable;
-
-class StubRiggedBucket extends Bucket
+class Stub_Rigged_Bucket extends Bucket
 {
     private array $triggers = [];
-
-    public function failForObject(string $name, ?Throwable $throwable = null): void
+    public function fail_for_object(string $name, ?Throwable $throwable = null): void
     {
-        $this->setupTrigger('object', $name, $throwable);
+        $this->setup_trigger('object', $name, $throwable);
     }
-
-    public function failForUpload(string $name, ?Throwable $throwable = null): void
+    public function fail_for_upload(string $name, ?Throwable $throwable = null): void
     {
-        $this->setupTrigger('upload', $name, $throwable);
+        $this->setup_trigger('upload', $name, $throwable);
     }
-
     public function object($name, array $options = [])
     {
-        $this->pushTrigger('object', $name);
-
+        $this->push_trigger('object', $name);
         return parent::object($name, $options);
     }
-
     public function upload($data, array $options = [])
     {
-        $this->pushTrigger('upload', $options['name'] ?? 'unknown-object-name');
-
+        $this->push_trigger('upload', $options['name'] ?? 'unknown-object-name');
         return parent::upload($data, $options);
     }
-
-    private function setupTrigger(string $method, string $name, ?Throwable $throwable): void
+    private function setup_trigger(string $method, string $name, ?Throwable $throwable): void
     {
         $this->triggers[$method][$name] = $throwable ?? new LogicException('unknown error');
     }
-
-    private function pushTrigger(string $method, string $name): void
+    private function push_trigger(string $method, string $name): void
     {
         $trigger = $this->triggers[$method][$name] ?? null;
-
         if ($trigger instanceof Throwable) {
             unset($this->triggers[$method][$name]);
             throw $trigger;

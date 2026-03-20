@@ -1,16 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\UrlGeneration;
+declare (strict_types=1);
+namespace League\Flysystem\Url_Generation;
 
 use League\Flysystem\Config;
-use League\Flysystem\UnableToGeneratePublicUrl;
-
-interface PublicUrlGenerator
+use League\Flysystem\Unable_To_Generate_Public_Url;
+interface Public_Url_Generator
 {
     /**
      * @throws UnableToGeneratePublicUrl
      */
-    public function publicUrl(string $path, Config $config): string;
+    public function public_url(string $path, Config $config): string;
 }

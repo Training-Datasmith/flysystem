@@ -1,17 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\UrlGeneration;
+declare (strict_types=1);
+namespace League\Flysystem\Url_Generation;
 
 use DateTimeInterface;
 use League\Flysystem\Config;
-use League\Flysystem\UnableToGenerateTemporaryUrl;
-
-interface TemporaryUrlGenerator
+use League\Flysystem\Unable_To_Generate_Temporary_Url;
+interface Temporary_Url_Generator
 {
     /**
      * @throws UnableToGenerateTemporaryUrl
      */
-    public function temporaryUrl(string $path, DateTimeInterface $expiresAt, Config $config): string;
+    public function temporary_url(string $path, DateTimeInterface $expires_at, Config $config): string;
 }

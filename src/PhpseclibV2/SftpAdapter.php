@@ -1,83 +1,66 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV2;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V2;
 
 use League\Flysystem\Config;
-use League\Flysystem\DirectoryAttributes;
-use League\Flysystem\FileAttributes;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\FilesystemException;
-use League\Flysystem\PathPrefixer;
-use League\Flysystem\StorageAttributes;
-use League\Flysystem\UnableToCheckDirectoryExistence;
-use League\Flysystem\UnableToCheckFileExistence;
-use League\Flysystem\UnableToCopyFile;
-use League\Flysystem\UnableToCreateDirectory;
-use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToReadFile;
-use League\Flysystem\UnableToRetrieveMetadata;
-use League\Flysystem\UnableToSetVisibility;
-use League\Flysystem\UnableToWriteFile;
-use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
-use League\Flysystem\UnixVisibility\VisibilityConverter;
-use League\MimeTypeDetection\FinfoMimeTypeDetector;
-use League\MimeTypeDetection\MimeTypeDetector;
+use League\Flysystem\Directory_Attributes;
+use League\Flysystem\File_Attributes;
+use League\Flysystem\Filesystem_Adapter;
+use League\Flysystem\Filesystem_Exception;
+use League\Flysystem\Path_Prefixer;
+use League\Flysystem\Storage_Attributes;
+use League\Flysystem\Unable_To_Check_Directory_Existence;
+use League\Flysystem\Unable_To_Check_File_Existence;
+use League\Flysystem\Unable_To_Copy_File;
+use League\Flysystem\Unable_To_Create_Directory;
+use League\Flysystem\Unable_To_Move_File;
+use League\Flysystem\Unable_To_Read_File;
+use League\Flysystem\Unable_To_Retrieve_Metadata;
+use League\Flysystem\Unable_To_Set_Visibility;
+use League\Flysystem\Unable_To_Write_File;
+use League\Flysystem\Unix_Visibility\Portable_Visibility_Converter;
+use League\Flysystem\Unix_Visibility\Visibility_Converter;
+use League\Mime_Type_Detection\Finfo_Mime_Type_Detector;
+use League\Mime_Type_Detection\Mime_Type_Detector;
 use phpseclib\Net\SFTP;
-
 use function rtrim;
-
 use Throwable;
-
 /**
  * @deprecated The "League\Flysystem\PhpseclibV2\SftpAdapter" class is deprecated since Flysystem 3.0, use "League\Flysystem\PhpseclibV3\SftpAdapter" instead.
  */
-class SftpAdapter implements FilesystemAdapter
+class Sftp_Adapter implements Filesystem_Adapter
 {
-    private \League\Flysystem\UnixVisibility\VisibilityConverter $visibilityConverter;
-
-    private \League\Flysystem\PathPrefixer $prefixer;
-
+    private \League\Flysystem\Unix_Visibility\Visibility_Converter $visibility_converter;
+    private \League\Flysystem\Path_Prefixer $prefixer;
     /**
      * @var MimeTypeDetector
      */
-    private $mimeTypeDetector;
-
-    public function __construct(
-        private ConnectionProvider $connectionProvider,
-        string $root,
-        ?VisibilityConverter $visibilityConverter = null,
-        ?MimeTypeDetector $mimeTypeDetector = null,
-        private bool $detectMimeTypeUsingPath = false,
-    ) {
-        $this->prefixer = new PathPrefixer($root);
-        $this->visibilityConverter = $visibilityConverter ?? new PortableVisibilityConverter();
-        $this->mimeTypeDetector = $mimeTypeDetector ?? new FinfoMimeTypeDetector();
-    }
-
-    public function fileExists(string $path): bool
+    private $mime_type_detector;
+    public function __construct(private Connection_Provider $connection_provider, string $root, ?Visibility_Converter $visibility_converter = null, ?Mime_Type_Detector $mime_type_detector = null, private bool $detect_mime_type_using_path = false)
     {
-        $location = $this->prefixer->prefixPath($path);
-
+        $this->prefixer = new Path_Prefixer($root);
+        $this->visibility_converter = $visibility_converter ?? new Portable_Visibility_Converter();
+        $this->mime_type_detector = $mime_type_detector ?? new Finfo_Mime_Type_Detector();
+    }
+    public function file_exists(string $path): bool
+    {
+        $location = $this->prefixer->prefix_path($path);
         try {
-            return $this->connectionProvider->provideConnection()->is_file($location);
+            return $this->connection_provider->provide_connection()->is_file($location);
         } catch (Throwable $exception) {
-            throw UnableToCheckFileExistence::forLocation($path, $exception);
+            throw Unable_To_Check_File_Existence::for_location($path, $exception);
         }
     }
-
-    public function directoryExists(string $path): bool
+    public function directory_exists(string $path): bool
     {
-        $location = $this->prefixer->prefixDirectoryPath($path);
-
+        $location = $this->prefixer->prefix_directory_path($path);
         try {
-            return $this->connectionProvider->provideConnection()->is_dir($location);
+            return $this->connection_provider->provide_connection()->is_dir($location);
         } catch (Throwable $exception) {
-            throw UnableToCheckDirectoryExistence::forLocation($path, $exception);
+            throw Unable_To_Check_Directory_Existence::for_location($path, $exception);
         }
     }
-
     /**
      * @param string|resource $contents
      *
@@ -85,194 +68,153 @@ class SftpAdapter implements FilesystemAdapter
      */
     private function upload(string $path, $contents, Config $config): void
     {
-        $this->ensureParentDirectoryExists($path, $config);
-        $connection = $this->connectionProvider->provideConnection();
-        $location = $this->prefixer->prefixPath($path);
-
-        if (! $connection->put($location, $contents, SFTP::SOURCE_STRING)) {
-            throw UnableToWriteFile::atLocation($path, 'not able to write the file');
+        $this->ensure_parent_directory_exists($path, $config);
+        $connection = $this->connection_provider->provide_connection();
+        $location = $this->prefixer->prefix_path($path);
+        if (!$connection->put($location, $contents, SFTP::SOURCE_STRING)) {
+            throw Unable_To_Write_File::at_location($path, 'not able to write the file');
         }
-
         if ($visibility = $config->get(Config::OPTION_VISIBILITY)) {
-            $this->setVisibility($path, $visibility);
+            $this->set_visibility($path, $visibility);
         }
     }
-
-    private function ensureParentDirectoryExists(string $path, Config $config): void
+    private function ensure_parent_directory_exists(string $path, Config $config): void
     {
-        $parentDirectory = dirname($path);
-
-        if ($parentDirectory === '' || $parentDirectory === '.') {
+        $parent_directory = dirname($path);
+        if ($parent_directory === '' || $parent_directory === '.') {
             return;
         }
-
         /** @var string $visibility */
         $visibility = $config->get(Config::OPTION_DIRECTORY_VISIBILITY);
-        $this->makeDirectory($parentDirectory, $visibility);
+        $this->make_directory($parent_directory, $visibility);
     }
-
-    private function makeDirectory(string $directory, ?string $visibility): void
+    private function make_directory(string $directory, ?string $visibility): void
     {
-        $location = $this->prefixer->prefixPath($directory);
-        $connection = $this->connectionProvider->provideConnection();
-
+        $location = $this->prefixer->prefix_path($directory);
+        $connection = $this->connection_provider->provide_connection();
         if ($connection->is_dir($location)) {
             return;
         }
-
-        $mode = $visibility ? $this->visibilityConverter->forDirectory(
-            $visibility
-        ) : $this->visibilityConverter->defaultForDirectories();
-
-        if (! $connection->mkdir($location, $mode, true) && ! $connection->is_dir($location)) {
-            throw UnableToCreateDirectory::atLocation($directory);
+        $mode = $visibility ? $this->visibility_converter->for_directory($visibility) : $this->visibility_converter->default_for_directories();
+        if (!$connection->mkdir($location, $mode, true) && !$connection->is_dir($location)) {
+            throw Unable_To_Create_Directory::at_location($directory);
         }
     }
-
     public function write(string $path, string $contents, Config $config): void
     {
         try {
             $this->upload($path, $contents, $config);
-        } catch (UnableToWriteFile $exception) {
+        } catch (Unable_To_Write_File $exception) {
             throw $exception;
         } catch (Throwable $exception) {
-            throw UnableToWriteFile::atLocation($path, $exception->getMessage(), $exception);
+            throw Unable_To_Write_File::at_location($path, $exception->get_message(), $exception);
         }
     }
-
-    public function writeStream(string $path, $contents, Config $config): void
+    public function write_stream(string $path, $contents, Config $config): void
     {
         try {
             $this->upload($path, $contents, $config);
-        } catch (UnableToWriteFile $exception) {
+        } catch (Unable_To_Write_File $exception) {
             throw $exception;
         } catch (Throwable $exception) {
-            throw UnableToWriteFile::atLocation($path, $exception->getMessage(), $exception);
+            throw Unable_To_Write_File::at_location($path, $exception->get_message(), $exception);
         }
     }
-
     public function read(string $path): string
     {
-        $location = $this->prefixer->prefixPath($path);
-        $connection = $this->connectionProvider->provideConnection();
+        $location = $this->prefixer->prefix_path($path);
+        $connection = $this->connection_provider->provide_connection();
         $contents = $connection->get($location);
-
-        if (! is_string($contents)) {
-            throw UnableToReadFile::fromLocation($path);
+        if (!is_string($contents)) {
+            throw Unable_To_Read_File::from_location($path);
         }
-
         return $contents;
     }
-
-    public function readStream(string $path)
+    public function read_stream(string $path)
     {
-        $location = $this->prefixer->prefixPath($path);
-        $connection = $this->connectionProvider->provideConnection();
+        $location = $this->prefixer->prefix_path($path);
+        $connection = $this->connection_provider->provide_connection();
         /** @var resource $readStream */
-        $readStream = fopen('php://temp', 'w+');
-
-        if (! $connection->get($location, $readStream)) {
-            fclose($readStream);
-            throw UnableToReadFile::fromLocation($path);
+        $read_stream = fopen('php://temp', 'w+');
+        if (!$connection->get($location, $read_stream)) {
+            fclose($read_stream);
+            throw Unable_To_Read_File::from_location($path);
         }
-
-        rewind($readStream);
-
-        return $readStream;
+        rewind($read_stream);
+        return $read_stream;
     }
-
     public function delete(string $path): void
     {
-        $location = $this->prefixer->prefixPath($path);
-        $connection = $this->connectionProvider->provideConnection();
+        $location = $this->prefixer->prefix_path($path);
+        $connection = $this->connection_provider->provide_connection();
         $connection->delete($location);
     }
-
-    public function deleteDirectory(string $path): void
+    public function delete_directory(string $path): void
     {
-        $location = rtrim($this->prefixer->prefixPath($path), '/') . '/';
-        $connection = $this->connectionProvider->provideConnection();
+        $location = rtrim($this->prefixer->prefix_path($path), '/') . '/';
+        $connection = $this->connection_provider->provide_connection();
         $connection->delete($location);
         $connection->rmdir($location);
     }
-
-    public function createDirectory(string $path, Config $config): void
+    public function create_directory(string $path, Config $config): void
     {
-        $this->makeDirectory($path, $config->get(Config::OPTION_DIRECTORY_VISIBILITY, $config->get(Config::OPTION_VISIBILITY)));
+        $this->make_directory($path, $config->get(Config::OPTION_DIRECTORY_VISIBILITY, $config->get(Config::OPTION_VISIBILITY)));
     }
-
-    public function setVisibility(string $path, string $visibility): void
+    public function set_visibility(string $path, string $visibility): void
     {
-        $location = $this->prefixer->prefixPath($path);
-        $connection = $this->connectionProvider->provideConnection();
-        $mode = $this->visibilityConverter->forFile($visibility);
-
-        if (! $connection->chmod($mode, $location, false)) {
-            throw UnableToSetVisibility::atLocation($path);
+        $location = $this->prefixer->prefix_path($path);
+        $connection = $this->connection_provider->provide_connection();
+        $mode = $this->visibility_converter->for_file($visibility);
+        if (!$connection->chmod($mode, $location, false)) {
+            throw Unable_To_Set_Visibility::at_location($path);
         }
     }
-
-    private function fetchFileMetadata(string $path, string $type): FileAttributes
+    private function fetch_file_metadata(string $path, string $type): File_Attributes
     {
-        $location = $this->prefixer->prefixPath($path);
-        $connection = $this->connectionProvider->provideConnection();
+        $location = $this->prefixer->prefix_path($path);
+        $connection = $this->connection_provider->provide_connection();
         $stat = $connection->stat($location);
-
-        if (! is_array($stat)) {
-            throw UnableToRetrieveMetadata::create($path, $type);
+        if (!is_array($stat)) {
+            throw Unable_To_Retrieve_Metadata::create($path, $type);
         }
-
-        $attributes = $this->convertListingToAttributes($path, $stat);
-
-        if (! $attributes instanceof FileAttributes) {
-            throw UnableToRetrieveMetadata::create($path, $type, 'path is not a file');
+        $attributes = $this->convert_listing_to_attributes($path, $stat);
+        if (!$attributes instanceof File_Attributes) {
+            throw Unable_To_Retrieve_Metadata::create($path, $type, 'path is not a file');
         }
-
         return $attributes;
     }
-
-    public function mimeType(string $path): FileAttributes
+    public function mime_type(string $path): File_Attributes
     {
         try {
-            $mimetype = $this->detectMimeTypeUsingPath
-                ? $this->mimeTypeDetector->detectMimeTypeFromPath($path)
-                : $this->mimeTypeDetector->detectMimeType($path, $this->read($path));
+            $mimetype = $this->detect_mime_type_using_path ? $this->mime_type_detector->detect_mime_type_from_path($path) : $this->mime_type_detector->detect_mime_type($path, $this->read($path));
         } catch (Throwable $exception) {
-            throw UnableToRetrieveMetadata::mimeType($path, $exception->getMessage(), $exception);
+            throw Unable_To_Retrieve_Metadata::mime_type($path, $exception->get_message(), $exception);
         }
-
         if ($mimetype === null) {
-            throw UnableToRetrieveMetadata::mimeType($path, 'Unknown.');
+            throw Unable_To_Retrieve_Metadata::mime_type($path, 'Unknown.');
         }
-
-        return new FileAttributes($path, null, null, null, $mimetype);
+        return new File_Attributes($path, null, null, null, $mimetype);
     }
-
-    public function lastModified(string $path): FileAttributes
+    public function last_modified(string $path): File_Attributes
     {
-        return $this->fetchFileMetadata($path, FileAttributes::ATTRIBUTE_LAST_MODIFIED);
+        return $this->fetch_file_metadata($path, File_Attributes::ATTRIBUTE_LAST_MODIFIED);
     }
-
-    public function fileSize(string $path): FileAttributes
+    public function file_size(string $path): File_Attributes
     {
-        return $this->fetchFileMetadata($path, FileAttributes::ATTRIBUTE_FILE_SIZE);
+        return $this->fetch_file_metadata($path, File_Attributes::ATTRIBUTE_FILE_SIZE);
     }
-
-    public function visibility(string $path): FileAttributes
+    public function visibility(string $path): File_Attributes
     {
-        return $this->fetchFileMetadata($path, FileAttributes::ATTRIBUTE_VISIBILITY);
+        return $this->fetch_file_metadata($path, File_Attributes::ATTRIBUTE_VISIBILITY);
     }
-
-    public function listContents(string $path, bool $deep): iterable
+    public function list_contents(string $path, bool $deep): iterable
     {
-        $connection = $this->connectionProvider->provideConnection();
-        $location = $this->prefixer->prefixPath(rtrim($path, '/')) . '/';
+        $connection = $this->connection_provider->provide_connection();
+        $location = $this->prefixer->prefix_path(rtrim($path, '/')) . '/';
         $listing = $connection->rawlist($location, false);
-
         if ($listing === false) {
             return;
         }
-
         foreach ($listing as $filename => $attributes) {
             if ($filename === '.') {
                 continue;
@@ -282,67 +224,50 @@ class SftpAdapter implements FilesystemAdapter
             }
             // Ensure numeric keys are strings.
             $filename = (string) $filename;
-            $path = $this->prefixer->stripPrefix($location . ltrim($filename, '/'));
-            $attributes = $this->convertListingToAttributes($path, $attributes);
+            $path = $this->prefixer->strip_prefix($location . ltrim($filename, '/'));
+            $attributes = $this->convert_listing_to_attributes($path, $attributes);
             yield $attributes;
-
-            if ($deep && $attributes->isDir()) {
-                foreach ($this->listContents($attributes->path(), true) as $child) {
+            if ($deep && $attributes->is_dir()) {
+                foreach ($this->list_contents($attributes->path(), true) as $child) {
                     yield $child;
                 }
             }
         }
     }
-
-    private function convertListingToAttributes(string $path, array $attributes): StorageAttributes
+    private function convert_listing_to_attributes(string $path, array $attributes): Storage_Attributes
     {
         $permissions = $attributes['permissions'] & 0777;
-        $lastModified = $attributes['mtime'] ?? null;
-
+        $last_modified = $attributes['mtime'] ?? null;
         if (($attributes['type'] ?? null) === NET_SFTP_TYPE_DIRECTORY) {
-            return new DirectoryAttributes(
-                ltrim($path, '/'),
-                $this->visibilityConverter->inverseForDirectory($permissions),
-                $lastModified
-            );
+            return new Directory_Attributes(ltrim($path, '/'), $this->visibility_converter->inverse_for_directory($permissions), $last_modified);
         }
-
-        return new FileAttributes(
-            $path,
-            $attributes['size'],
-            $this->visibilityConverter->inverseForFile($permissions),
-            $lastModified
-        );
+        return new File_Attributes($path, $attributes['size'], $this->visibility_converter->inverse_for_file($permissions), $last_modified);
     }
-
     public function move(string $source, string $destination, Config $config): void
     {
-        $sourceLocation = $this->prefixer->prefixPath($source);
-        $destinationLocation = $this->prefixer->prefixPath($destination);
-        $connection = $this->connectionProvider->provideConnection();
-
+        $source_location = $this->prefixer->prefix_path($source);
+        $destination_location = $this->prefixer->prefix_path($destination);
+        $connection = $this->connection_provider->provide_connection();
         try {
-            $this->ensureParentDirectoryExists($destination, $config);
+            $this->ensure_parent_directory_exists($destination, $config);
         } catch (Throwable $exception) {
-            throw UnableToMoveFile::fromLocationTo($source, $destination, $exception);
+            throw Unable_To_Move_File::from_location_to($source, $destination, $exception);
         }
-
-        if (! $connection->rename($sourceLocation, $destinationLocation)) {
-            throw UnableToMoveFile::fromLocationTo($source, $destination);
+        if (!$connection->rename($source_location, $destination_location)) {
+            throw Unable_To_Move_File::from_location_to($source, $destination);
         }
     }
-
     public function copy(string $source, string $destination, Config $config): void
     {
         try {
-            $readStream = $this->readStream($source);
+            $read_stream = $this->read_stream($source);
             $visibility = $this->visibility($source)->visibility();
-            $this->writeStream($destination, $readStream, new Config(compact(Config::OPTION_VISIBILITY)));
+            $this->write_stream($destination, $read_stream, new Config(compact(Config::OPTION_VISIBILITY)));
         } catch (Throwable $exception) {
-            if (isset($readStream) && is_resource($readStream)) {
-                @fclose($readStream);
+            if (isset($read_stream) && is_resource($read_stream)) {
+                @fclose($read_stream);
             }
-            throw UnableToCopyFile::fromLocationTo($source, $destination, $exception);
+            throw Unable_To_Copy_File::from_location_to($source, $destination, $exception);
         }
     }
 }

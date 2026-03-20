@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
-class ResolveIdenticalPathConflict
+class Resolve_Identical_Path_Conflict
 {
     public const IGNORE = 'ignore';
     public const FAIL = 'fail';

@@ -1,39 +1,30 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem\Ftp;
 
-use League\Flysystem\AdapterTestUtilities\RetryOnTestException;
-use PHPUnit\Framework\TestCase;
-
+use League\Flysystem\Adapter_Test_Utilities\Retry_On_Test_Exception;
+use Php_Unit\Framework\Test_Case;
 /**
  * @group ftp
  */
-class RawListFtpConnectivityCheckerTest extends TestCase
+class Raw_List_Ftp_Connectivity_Checker_Test extends Test_Case
 {
-    use RetryOnTestException;
+    use Retry_On_Test_Exception;
     /**
      * @test
      */
     public function detecting_if_a_connection_is_connected(): void
     {
-        $this->retryOnException(UnableToConnectToFtpHost::class);
-        $this->runScenario(function (): void {
-            $options = FtpConnectionOptions::fromArray([
-               'host' => 'localhost',
-               'port' => 2121,
-               'root' => '/home/foo/upload/',
-               'username' => 'foo',
-               'password' => 'pass',
-           ]);
-
-            $provider = new FtpConnectionProvider();
-            $connection = $provider->createConnection($options);
-            $connectedChecker = new RawListFtpConnectivityChecker();
-            $this->assertTrue($connectedChecker->isConnected($connection));
+        $this->retry_on_exception(Unable_To_Connect_To_Ftp_Host::class);
+        $this->run_scenario(function (): void {
+            $options = Ftp_Connection_Options::from_array(['host' => 'localhost', 'port' => 2121, 'root' => '/home/foo/upload/', 'username' => 'foo', 'password' => 'pass']);
+            $provider = new Ftp_Connection_Provider();
+            $connection = $provider->create_connection($options);
+            $connected_checker = new Raw_List_Ftp_Connectivity_Checker();
+            $this->assert_true($connected_checker->is_connected($connection));
             @ftp_close($connection);
-            $this->assertFalse($connectedChecker->isConnected($connection));
+            $this->assert_false($connected_checker->is_connected($connection));
         });
     }
 }

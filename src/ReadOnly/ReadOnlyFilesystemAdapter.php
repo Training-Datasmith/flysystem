@@ -1,95 +1,79 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\ReadOnly;
+declare (strict_types=1);
+namespace League\Flysystem\Read_Only;
 
 use DateTimeInterface;
-use League\Flysystem\CalculateChecksumFromStream;
-use League\Flysystem\ChecksumProvider;
+use League\Flysystem\Calculate_Checksum_From_Stream;
+use League\Flysystem\Checksum_Provider;
 use League\Flysystem\Config;
-use League\Flysystem\DecoratedAdapter;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\UnableToCopyFile;
-use League\Flysystem\UnableToCreateDirectory;
-use League\Flysystem\UnableToDeleteDirectory;
-use League\Flysystem\UnableToDeleteFile;
-use League\Flysystem\UnableToGeneratePublicUrl;
-use League\Flysystem\UnableToGenerateTemporaryUrl;
-use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToSetVisibility;
-use League\Flysystem\UnableToWriteFile;
-use League\Flysystem\UrlGeneration\PublicUrlGenerator;
-use League\Flysystem\UrlGeneration\TemporaryUrlGenerator;
-
-class ReadOnlyFilesystemAdapter extends DecoratedAdapter implements FilesystemAdapter, PublicUrlGenerator, ChecksumProvider, TemporaryUrlGenerator
+use League\Flysystem\Decorated_Adapter;
+use League\Flysystem\Filesystem_Adapter;
+use League\Flysystem\Unable_To_Copy_File;
+use League\Flysystem\Unable_To_Create_Directory;
+use League\Flysystem\Unable_To_Delete_Directory;
+use League\Flysystem\Unable_To_Delete_File;
+use League\Flysystem\Unable_To_Generate_Public_Url;
+use League\Flysystem\Unable_To_Generate_Temporary_Url;
+use League\Flysystem\Unable_To_Move_File;
+use League\Flysystem\Unable_To_Set_Visibility;
+use League\Flysystem\Unable_To_Write_File;
+use League\Flysystem\Url_Generation\Public_Url_Generator;
+use League\Flysystem\Url_Generation\Temporary_Url_Generator;
+class Read_Only_Filesystem_Adapter extends Decorated_Adapter implements Filesystem_Adapter, Public_Url_Generator, Checksum_Provider, Temporary_Url_Generator
 {
-    use CalculateChecksumFromStream;
-
+    use Calculate_Checksum_From_Stream;
     public function write(string $path, string $contents, Config $config): void
     {
-        throw UnableToWriteFile::atLocation($path, 'This is a readonly adapter.');
+        throw Unable_To_Write_File::at_location($path, 'This is a readonly adapter.');
     }
-
-    public function writeStream(string $path, $contents, Config $config): void
+    public function write_stream(string $path, $contents, Config $config): void
     {
-        throw UnableToWriteFile::atLocation($path, 'This is a readonly adapter.');
+        throw Unable_To_Write_File::at_location($path, 'This is a readonly adapter.');
     }
-
     public function delete(string $path): void
     {
-        throw UnableToDeleteFile::atLocation($path, 'This is a readonly adapter.');
+        throw Unable_To_Delete_File::at_location($path, 'This is a readonly adapter.');
     }
-
-    public function deleteDirectory(string $path): void
+    public function delete_directory(string $path): void
     {
-        throw UnableToDeleteDirectory::atLocation($path, 'This is a readonly adapter.');
+        throw Unable_To_Delete_Directory::at_location($path, 'This is a readonly adapter.');
     }
-
-    public function createDirectory(string $path, Config $config): void
+    public function create_directory(string $path, Config $config): void
     {
-        throw UnableToCreateDirectory::atLocation($path, 'This is a readonly adapter.');
+        throw Unable_To_Create_Directory::at_location($path, 'This is a readonly adapter.');
     }
-
-    public function setVisibility(string $path, string $visibility): void
+    public function set_visibility(string $path, string $visibility): void
     {
-        throw UnableToSetVisibility::atLocation($path, 'This is a readonly adapter.');
+        throw Unable_To_Set_Visibility::at_location($path, 'This is a readonly adapter.');
     }
-
     public function move(string $source, string $destination, Config $config): void
     {
-        throw new UnableToMoveFile("Unable to move file from $source to $destination as this is a readonly adapter.");
+        throw new Unable_To_Move_File("Unable to move file from {$source} to {$destination} as this is a readonly adapter.");
     }
-
     public function copy(string $source, string $destination, Config $config): void
     {
-        throw new UnableToCopyFile("Unable to copy file from $source to $destination as this is a readonly adapter.");
+        throw new Unable_To_Copy_File("Unable to copy file from {$source} to {$destination} as this is a readonly adapter.");
     }
-
-    public function publicUrl(string $path, Config $config): string
+    public function public_url(string $path, Config $config): string
     {
-        if (! $this->adapter instanceof PublicUrlGenerator) {
-            throw UnableToGeneratePublicUrl::noGeneratorConfigured($path);
+        if (!$this->adapter instanceof Public_Url_Generator) {
+            throw Unable_To_Generate_Public_Url::no_generator_configured($path);
         }
-
-        return $this->adapter->publicUrl($path, $config);
+        return $this->adapter->public_url($path, $config);
     }
-
     public function checksum(string $path, Config $config): string
     {
-        if ($this->adapter instanceof ChecksumProvider) {
+        if ($this->adapter instanceof Checksum_Provider) {
             return $this->adapter->checksum($path, $config);
         }
-
-        return $this->calculateChecksumFromStream($path, $config);
+        return $this->calculate_checksum_from_stream($path, $config);
     }
-
-    public function temporaryUrl(string $path, DateTimeInterface $expiresAt, Config $config): string
+    public function temporary_url(string $path, DateTimeInterface $expires_at, Config $config): string
     {
-        if (! $this->adapter instanceof TemporaryUrlGenerator) {
-            throw UnableToGenerateTemporaryUrl::noGeneratorConfigured($path);
+        if (!$this->adapter instanceof Temporary_Url_Generator) {
+            throw Unable_To_Generate_Temporary_Url::no_generator_configured($path);
         }
-
-        return $this->adapter->temporaryUrl($path, $expiresAt, $config);
+        return $this->adapter->temporary_url($path, $expires_at, $config);
     }
 }

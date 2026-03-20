@@ -1,12 +1,10 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Zip_Archive;
 
-namespace League\Flysystem\ZipArchive;
-
-use ZipArchive;
-
-interface ZipArchiveProvider
+use Zip_Archive;
+interface Zip_Archive_Provider
 {
-    public function createZipArchive(): ZipArchive;
+    public function create_zip_archive(): Zip_Archive;
 }

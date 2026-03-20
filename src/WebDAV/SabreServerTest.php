@@ -1,18 +1,15 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Web_Dav;
 
-namespace League\Flysystem\WebDAV;
-
-use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\Filesystem_Adapter;
 use Sabre\DAV\Client;
-
-class SabreServerTest extends WebDAVAdapterTestCase
+class Sabre_Server_Test extends Web_Dav_Adapter_Test_Case
 {
-    protected static function createFilesystemAdapter(): FilesystemAdapter
+    protected static function create_filesystem_adapter(): Filesystem_Adapter
     {
         $client = new Client(['baseUri' => 'http://localhost:4040/']);
-
-        return new WebDAVAdapter($client, 'directory/prefix');
+        return new Web_Dav_Adapter($client, 'directory/prefix');
     }
 }

@@ -1,30 +1,24 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV2;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V2;
 
 use phpseclib\Net\SFTP;
-
 /**
  * @deprecated The "League\Flysystem\PhpseclibV2\FixatedConnectivityChecker" class is deprecated since Flysystem 3.0, use "League\Flysystem\PhpseclibV3\FixatedConnectivityChecker" instead.
  */
-class FixatedConnectivityChecker implements ConnectivityChecker
+class Fixated_Connectivity_Checker implements Connectivity_Checker
 {
-    private int $numberOfTimesChecked = 0;
-
-    public function __construct(private int $succeedAfter = 0)
+    private int $number_of_times_checked = 0;
+    public function __construct(private int $succeed_after = 0)
     {
     }
-
-    public function isConnected(SFTP $connection): bool
+    public function is_connected(SFTP $connection): bool
     {
-        if ($this->numberOfTimesChecked >= $this->succeedAfter) {
+        if ($this->number_of_times_checked >= $this->succeed_after) {
             return true;
         }
-
-        $this->numberOfTimesChecked++;
-
+        $this->number_of_times_checked++;
         return false;
     }
 }

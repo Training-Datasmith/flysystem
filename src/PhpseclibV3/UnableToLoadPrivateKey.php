@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V3;
 
-namespace League\Flysystem\PhpseclibV3;
-
-use League\Flysystem\FilesystemException;
+use League\Flysystem\Filesystem_Exception;
 use RuntimeException;
 use Throwable;
-
-class UnableToLoadPrivateKey extends RuntimeException implements FilesystemException
+class Unable_To_Load_Private_Key extends RuntimeException implements Filesystem_Exception
 {
     public function __construct(?string $message = 'Unable to load private key.', ?Throwable $previous = null)
     {

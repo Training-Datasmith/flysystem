@@ -1,267 +1,206 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\InMemory;
+declare (strict_types=1);
+namespace League\Flysystem\In_Memory;
 
 use function array_keys;
-
 use League\Flysystem\Config;
-use League\Flysystem\DirectoryAttributes;
-use League\Flysystem\FileAttributes;
-use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\UnableToCopyFile;
-use League\Flysystem\UnableToMoveFile;
-use League\Flysystem\UnableToReadFile;
-use League\Flysystem\UnableToRetrieveMetadata;
-use League\Flysystem\UnableToSetVisibility;
+use League\Flysystem\Directory_Attributes;
+use League\Flysystem\File_Attributes;
+use League\Flysystem\Filesystem_Adapter;
+use League\Flysystem\Unable_To_Copy_File;
+use League\Flysystem\Unable_To_Move_File;
+use League\Flysystem\Unable_To_Read_File;
+use League\Flysystem\Unable_To_Retrieve_Metadata;
+use League\Flysystem\Unable_To_Set_Visibility;
 use League\Flysystem\Visibility;
-use League\MimeTypeDetection\FinfoMimeTypeDetector;
-
-use League\MimeTypeDetection\MimeTypeDetector;
-
+use League\Mime_Type_Detection\Finfo_Mime_Type_Detector;
+use League\Mime_Type_Detection\Mime_Type_Detector;
 use function rtrim;
-
-class InMemoryFilesystemAdapter implements FilesystemAdapter
+class In_Memory_Filesystem_Adapter implements Filesystem_Adapter
 {
     public const DUMMY_FILE_FOR_FORCED_LISTING_IN_FLYSYSTEM_TEST = '______DUMMY_FILE_FOR_FORCED_LISTING_IN_FLYSYSTEM_TEST';
-
     /**
      * @var InMemoryFile[]
      */
     private array $files = [];
-    private MimeTypeDetector $mimeTypeDetector;
-
-    public function __construct(
-        private string $defaultVisibility = Visibility::PUBLIC,
-        ?MimeTypeDetector $mimeTypeDetector = null
-    ) {
-        $this->mimeTypeDetector = $mimeTypeDetector ?? new FinfoMimeTypeDetector();
-    }
-
-    public function fileExists(string $path): bool
+    private Mime_Type_Detector $mime_type_detector;
+    public function __construct(private string $default_visibility = Visibility::PUBLIC, ?Mime_Type_Detector $mime_type_detector = null)
     {
-        return array_key_exists($this->preparePath($path), $this->files);
+        $this->mime_type_detector = $mime_type_detector ?? new Finfo_Mime_Type_Detector();
     }
-
+    public function file_exists(string $path): bool
+    {
+        return array_key_exists($this->prepare_path($path), $this->files);
+    }
     public function write(string $path, string $contents, Config $config): void
     {
-        $path = $this->preparePath($path);
-        $file = ($this->files[$path] ??= new InMemoryFile());
-        $file->updateContents($contents, $config->get('timestamp'));
-
-        $visibility = $config->get(Config::OPTION_VISIBILITY, $this->defaultVisibility);
-        $file->setVisibility($visibility);
+        $path = $this->prepare_path($path);
+        $file = $this->files[$path] ??= new In_Memory_File();
+        $file->update_contents($contents, $config->get('timestamp'));
+        $visibility = $config->get(Config::OPTION_VISIBILITY, $this->default_visibility);
+        $file->set_visibility($visibility);
     }
-
-    public function writeStream(string $path, $contents, Config $config): void
+    public function write_stream(string $path, $contents, Config $config): void
     {
         $this->write($path, (string) stream_get_contents($contents), $config);
     }
-
     public function read(string $path): string
     {
-        $path = $this->preparePath($path);
-
+        $path = $this->prepare_path($path);
         if (array_key_exists($path, $this->files) === false) {
-            throw UnableToReadFile::fromLocation($path, 'file does not exist');
+            throw Unable_To_Read_File::from_location($path, 'file does not exist');
         }
-
         return $this->files[$path]->read();
     }
-
-    public function readStream(string $path)
+    public function read_stream(string $path)
     {
-        $path = $this->preparePath($path);
-
+        $path = $this->prepare_path($path);
         if (array_key_exists($path, $this->files) === false) {
-            throw UnableToReadFile::fromLocation($path, 'file does not exist');
+            throw Unable_To_Read_File::from_location($path, 'file does not exist');
         }
-
-        return $this->files[$path]->readStream();
+        return $this->files[$path]->read_stream();
     }
-
     public function delete(string $path): void
     {
-        unset($this->files[$this->preparePath($path)]);
+        unset($this->files[$this->prepare_path($path)]);
     }
-
-    public function deleteDirectory(string $path): void
+    public function delete_directory(string $path): void
     {
-        $path = $this->preparePath($path);
+        $path = $this->prepare_path($path);
         $path = rtrim($path, '/') . '/';
-
-        foreach (array_keys($this->files) as $filePath) {
-            if (str_starts_with($filePath, $path)) {
-                unset($this->files[$filePath]);
+        foreach (array_keys($this->files) as $file_path) {
+            if (str_starts_with($file_path, $path)) {
+                unset($this->files[$file_path]);
             }
         }
     }
-
-    public function createDirectory(string $path, Config $config): void
+    public function create_directory(string $path, Config $config): void
     {
-        $filePath = rtrim($path, '/') . '/' . self::DUMMY_FILE_FOR_FORCED_LISTING_IN_FLYSYSTEM_TEST;
-        $this->write($filePath, '', $config);
+        $file_path = rtrim($path, '/') . '/' . self::DUMMY_FILE_FOR_FORCED_LISTING_IN_FLYSYSTEM_TEST;
+        $this->write($file_path, '', $config);
     }
-
-    public function directoryExists(string $path): bool
+    public function directory_exists(string $path): bool
     {
-        $path = $this->preparePath($path);
+        $path = $this->prepare_path($path);
         $path = rtrim($path, '/') . '/';
-
-        foreach (array_keys($this->files) as $filePath) {
-            if (str_starts_with($filePath, $path)) {
+        foreach (array_keys($this->files) as $file_path) {
+            if (str_starts_with($file_path, $path)) {
                 return true;
             }
         }
-
         return false;
     }
-
-    public function setVisibility(string $path, string $visibility): void
+    public function set_visibility(string $path, string $visibility): void
     {
-        $path = $this->preparePath($path);
-
+        $path = $this->prepare_path($path);
         if (array_key_exists($path, $this->files) === false) {
-            throw UnableToSetVisibility::atLocation($path, 'file does not exist');
+            throw Unable_To_Set_Visibility::at_location($path, 'file does not exist');
         }
-
-        $this->files[$path]->setVisibility($visibility);
+        $this->files[$path]->set_visibility($visibility);
     }
-
-    public function visibility(string $path): FileAttributes
+    public function visibility(string $path): File_Attributes
     {
-        $path = $this->preparePath($path);
-
+        $path = $this->prepare_path($path);
         if (array_key_exists($path, $this->files) === false) {
-            throw UnableToRetrieveMetadata::visibility($path, 'file does not exist');
+            throw Unable_To_Retrieve_Metadata::visibility($path, 'file does not exist');
         }
-
-        return new FileAttributes($path, null, $this->files[$path]->visibility());
+        return new File_Attributes($path, null, $this->files[$path]->visibility());
     }
-
-    public function mimeType(string $path): FileAttributes
+    public function mime_type(string $path): File_Attributes
     {
-        $preparedPath = $this->preparePath($path);
-
-        if (array_key_exists($preparedPath, $this->files) === false) {
-            throw UnableToRetrieveMetadata::mimeType($path, 'file does not exist');
+        $prepared_path = $this->prepare_path($path);
+        if (array_key_exists($prepared_path, $this->files) === false) {
+            throw Unable_To_Retrieve_Metadata::mime_type($path, 'file does not exist');
         }
-
-        $mimeType = $this->mimeTypeDetector->detectMimeType($path, $this->files[$preparedPath]->read());
-
-        if ($mimeType === null) {
-            throw UnableToRetrieveMetadata::mimeType($path);
+        $mime_type = $this->mime_type_detector->detect_mime_type($path, $this->files[$prepared_path]->read());
+        if ($mime_type === null) {
+            throw Unable_To_Retrieve_Metadata::mime_type($path);
         }
-
-        return new FileAttributes($preparedPath, null, null, null, $mimeType);
+        return new File_Attributes($prepared_path, null, null, null, $mime_type);
     }
-
-    public function lastModified(string $path): FileAttributes
+    public function last_modified(string $path): File_Attributes
     {
-        $path = $this->preparePath($path);
-
+        $path = $this->prepare_path($path);
         if (array_key_exists($path, $this->files) === false) {
-            throw UnableToRetrieveMetadata::lastModified($path, 'file does not exist');
+            throw Unable_To_Retrieve_Metadata::last_modified($path, 'file does not exist');
         }
-
-        return new FileAttributes($path, null, null, $this->files[$path]->lastModified());
+        return new File_Attributes($path, null, null, $this->files[$path]->last_modified());
     }
-
-    public function fileSize(string $path): FileAttributes
+    public function file_size(string $path): File_Attributes
     {
-        $path = $this->preparePath($path);
-
+        $path = $this->prepare_path($path);
         if (array_key_exists($path, $this->files) === false) {
-            throw UnableToRetrieveMetadata::fileSize($path, 'file does not exist');
+            throw Unable_To_Retrieve_Metadata::file_size($path, 'file does not exist');
         }
-
-        return new FileAttributes($path, $this->files[$path]->fileSize());
+        return new File_Attributes($path, $this->files[$path]->file_size());
     }
-
-    public function listContents(string $path, bool $deep): iterable
+    public function list_contents(string $path, bool $deep): iterable
     {
-        $prefix = rtrim($this->preparePath($path), '/') . '/';
-        $prefixLength = strlen($prefix);
-        $listedDirectories = [];
-
-        foreach ($this->files as $filePath => $file) {
-            if (str_starts_with($filePath, $prefix)) {
-                $subPath = substr($filePath, $prefixLength);
-                $dirname = dirname($subPath);
-
+        $prefix = rtrim($this->prepare_path($path), '/') . '/';
+        $prefix_length = strlen($prefix);
+        $listed_directories = [];
+        foreach ($this->files as $file_path => $file) {
+            if (str_starts_with($file_path, $prefix)) {
+                $sub_path = substr($file_path, $prefix_length);
+                $dirname = dirname($sub_path);
                 if ($dirname !== '.') {
                     $parts = explode('/', $dirname);
-                    $dirPath = '';
-
+                    $dir_path = '';
                     foreach ($parts as $index => $part) {
                         if ($deep === false && $index >= 1) {
                             break;
                         }
-
-                        $dirPath .= $part . '/';
-
-                        if (! in_array($dirPath, $listedDirectories, true)) {
-                            $listedDirectories[] = $dirPath;
-                            yield new DirectoryAttributes(trim($prefix . $dirPath, '/'));
+                        $dir_path .= $part . '/';
+                        if (!in_array($dir_path, $listed_directories, true)) {
+                            $listed_directories[] = $dir_path;
+                            yield new Directory_Attributes(trim($prefix . $dir_path, '/'));
                         }
                     }
                 }
-
-                $dummyFilename = self::DUMMY_FILE_FOR_FORCED_LISTING_IN_FLYSYSTEM_TEST;
-                if (str_ends_with($filePath, $dummyFilename)) {
+                $dummy_filename = self::DUMMY_FILE_FOR_FORCED_LISTING_IN_FLYSYSTEM_TEST;
+                if (str_ends_with($file_path, $dummy_filename)) {
                     continue;
                 }
-
-                if ($deep === true || ! str_contains($subPath, '/')) {
-                    yield new FileAttributes(ltrim($filePath, '/'), $file->fileSize(), $file->visibility(), $file->lastModified(), $file->mimeType());
+                if ($deep === true || !str_contains($sub_path, '/')) {
+                    yield new File_Attributes(ltrim($file_path, '/'), $file->file_size(), $file->visibility(), $file->last_modified(), $file->mime_type());
                 }
             }
         }
     }
-
     public function move(string $source, string $destination, Config $config): void
     {
-        $sourcePath = $this->preparePath($source);
-        $destinationPath = $this->preparePath($destination);
-
-        if (! $this->fileExists($source)) {
-            throw UnableToMoveFile::fromLocationTo($source, $destination);
+        $source_path = $this->prepare_path($source);
+        $destination_path = $this->prepare_path($destination);
+        if (!$this->file_exists($source)) {
+            throw Unable_To_Move_File::from_location_to($source, $destination);
         }
-
-        if ($sourcePath !== $destinationPath) {
-            $this->files[$destinationPath] = $this->files[$sourcePath];
-            unset($this->files[$sourcePath]);
+        if ($source_path !== $destination_path) {
+            $this->files[$destination_path] = $this->files[$source_path];
+            unset($this->files[$source_path]);
         }
-
         if ($visibility = $config->get(Config::OPTION_VISIBILITY)) {
-            $this->setVisibility($destination, $visibility);
+            $this->set_visibility($destination, $visibility);
         }
     }
-
     public function copy(string $source, string $destination, Config $config): void
     {
-        $source = $this->preparePath($source);
-        $destination = $this->preparePath($destination);
-
-        if (! $this->fileExists($source)) {
-            throw UnableToCopyFile::fromLocationTo($source, $destination);
+        $source = $this->prepare_path($source);
+        $destination = $this->prepare_path($destination);
+        if (!$this->file_exists($source)) {
+            throw Unable_To_Copy_File::from_location_to($source, $destination);
         }
-
-        $lastModified = $config->get('timestamp', time());
-        $this->files[$destination] = $this->files[$source]->withLastModified($lastModified);
-
+        $last_modified = $config->get('timestamp', time());
+        $this->files[$destination] = $this->files[$source]->with_last_modified($last_modified);
         if ($visibility = $config->get(Config::OPTION_VISIBILITY)) {
-            $this->setVisibility($destination, $visibility);
+            $this->set_visibility($destination, $visibility);
         }
     }
-
-    private function preparePath(string $path): string
+    private function prepare_path(string $path): string
     {
         return '/' . ltrim($path, '/');
     }
-
-    public function deleteEverything(): void
+    public function delete_everything(): void
     {
         $this->files = [];
     }

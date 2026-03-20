@@ -1,15 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
 use RuntimeException;
-
-final class CorruptedPathDetected extends RuntimeException implements FilesystemException
+final class Corrupted_Path_Detected extends RuntimeException implements Filesystem_Exception
 {
-    public static function forPath(string $path): CorruptedPathDetected
+    public static function for_path(string $path): Corrupted_Path_Detected
     {
-        return new CorruptedPathDetected('Corrupted path detected: ' . $path);
+        return new Corrupted_Path_Detected('Corrupted path detected: ' . $path);
     }
 }

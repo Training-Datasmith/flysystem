@@ -1,74 +1,60 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\InMemory;
+declare (strict_types=1);
+namespace League\Flysystem\In_Memory;
 
 use const FILEINFO_MIME_TYPE;
-
 use finfo;
-
 /**
  * @internal
  */
-class InMemoryFile
+class In_Memory_File
 {
     private string $contents = '';
-    private int $lastModified = 0;
+    private int $last_modified = 0;
     private ?string $visibility = null;
-
-    public function updateContents(string $contents, ?int $timestamp): void
+    public function update_contents(string $contents, ?int $timestamp): void
     {
         $this->contents = $contents;
-        $this->lastModified = $timestamp ?? time();
+        $this->last_modified = $timestamp ?? time();
     }
-
-    public function lastModified(): int
+    public function last_modified(): int
     {
-        return $this->lastModified;
+        return $this->last_modified;
     }
-
-    public function withLastModified(int $lastModified): self
+    public function with_last_modified(int $last_modified): self
     {
         $clone = clone $this;
-        $clone->lastModified = $lastModified;
-
+        $clone->last_modified = $last_modified;
         return $clone;
     }
-
     public function read(): string
     {
         return $this->contents;
     }
-
     /**
      * @return resource
      */
-    public function readStream()
+    public function read_stream()
     {
         /** @var resource $stream */
         $stream = fopen('php://temp', 'w+b');
         fwrite($stream, $this->contents);
         rewind($stream);
-
         return $stream;
     }
-
-    public function fileSize(): int
+    public function file_size(): int
     {
         return strlen($this->contents);
     }
-
-    public function mimeType(): string
+    public function mime_type(): string
     {
         return (string) (new finfo(FILEINFO_MIME_TYPE))->buffer($this->contents);
     }
-
-    public function setVisibility(string $visibility): void
+    public function set_visibility(string $visibility): void
     {
         $this->visibility = $visibility;
     }
-
     public function visibility(): ?string
     {
         return $this->visibility;

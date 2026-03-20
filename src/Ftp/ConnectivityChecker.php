@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem\Ftp;
 
-interface ConnectivityChecker
+interface Connectivity_Checker
 {
     /**
      * @param resource $connection
      */
-    public function isConnected($connection): bool;
+    public function is_connected($connection): bool;
 }

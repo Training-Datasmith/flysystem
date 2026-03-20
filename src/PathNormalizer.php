@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem;
 
-interface PathNormalizer
+interface Path_Normalizer
 {
-    public function normalizePath(string $path): string;
+    public function normalize_path(string $path): string;
 }

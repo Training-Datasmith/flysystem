@@ -1,84 +1,52 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV3;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V3;
 
 use function base64_decode;
 use function implode;
-
-use League\Flysystem\FilesystemException;
-use phpseclib3\Crypt\Common\AsymmetricKey;
-use phpseclib3\Crypt\PublicKeyLoader;
-use phpseclib3\Exception\NoKeyLoadedException;
+use League\Flysystem\Filesystem_Exception;
+use phpseclib3\Crypt\Common\Asymmetric_Key;
+use phpseclib3\Crypt\Public_Key_Loader;
+use phpseclib3\Exception\No_Key_Loaded_Exception;
 use phpseclib3\Net\SFTP;
-
 use phpseclib3\System\SSH\Agent;
-
 use function str_split;
-
 use Throwable;
-
-class SftpConnectionProvider implements ConnectionProvider
+class Sftp_Connection_Provider implements Connection_Provider
 {
     private ?\phpseclib3\Net\SFTP $connection = null;
-
-    private \League\Flysystem\PhpseclibV3\ConnectivityChecker $connectivityChecker;
-
-    public function __construct(
-        private string $host,
-        private string $username,
-        private ?string $password = null,
-        private ?string $privateKey = null,
-        private ?string $passphrase = null,
-        private int $port = 22,
-        private bool $useAgent = false,
-        private int $timeout = 10,
-        private int $maxTries = 4,
-        private ?string $hostFingerprint = null,
-        ?ConnectivityChecker $connectivityChecker = null,
-        private array $preferredAlgorithms = [],
-        private bool $disableStatCache = true,
-    ) {
-        $this->connectivityChecker = $connectivityChecker ?? new SimpleConnectivityChecker();
+    private \League\Flysystem\Phpseclib_V3\Connectivity_Checker $connectivity_checker;
+    public function __construct(private string $host, private string $username, private ?string $password = null, private ?string $private_key = null, private ?string $passphrase = null, private int $port = 22, private bool $use_agent = false, private int $timeout = 10, private int $max_tries = 4, private ?string $host_fingerprint = null, ?Connectivity_Checker $connectivity_checker = null, private array $preferred_algorithms = [], private bool $disable_stat_cache = true)
+    {
+        $this->connectivity_checker = $connectivity_checker ?? new Simple_Connectivity_Checker();
     }
-
-    public function provideConnection(): SFTP
+    public function provide_connection(): SFTP
     {
         $tries = 0;
         start:
         $tries++;
-
         try {
-            $connection = $this->connection instanceof SFTP
-                ? $this->connection
-                : $this->setupConnection();
+            $connection = $this->connection instanceof SFTP ? $this->connection : $this->setup_connection();
         } catch (Throwable $exception) {
-            if ($tries <= $this->maxTries) {
+            if ($tries <= $this->max_tries) {
                 goto start;
             }
-
-            if ($exception instanceof FilesystemException) {
+            if ($exception instanceof Filesystem_Exception) {
                 throw $exception;
             }
-
-            throw UnableToConnectToSftpHost::atHostname($this->host, $exception);
+            throw Unable_To_Connect_To_Sftp_Host::at_hostname($this->host, $exception);
         }
-
-        if (! $this->connectivityChecker->isConnected($connection)) {
+        if (!$this->connectivity_checker->is_connected($connection)) {
             $connection->disconnect();
             $this->connection = null;
-
-            if ($tries <= $this->maxTries) {
+            if ($tries <= $this->max_tries) {
                 goto start;
             }
-
-            throw UnableToConnectToSftpHost::atHostname($this->host);
+            throw Unable_To_Connect_To_Sftp_Host::at_hostname($this->host);
         }
-
         return $this->connection = $connection;
     }
-
     public function disconnect(): void
     {
         if ($this->connection) {
@@ -86,125 +54,90 @@ class SftpConnectionProvider implements ConnectionProvider
             $this->connection = null;
         }
     }
-
-    private function setupConnection(): SFTP
+    private function setup_connection(): SFTP
     {
         $connection = new SFTP($this->host, $this->port, $this->timeout);
-        $connection->setPreferredAlgorithms($this->preferredAlgorithms);
-        $this->disableStatCache && $connection->disableStatCache();
-
+        $connection->set_preferred_algorithms($this->preferred_algorithms);
+        $this->disable_stat_cache && $connection->disable_stat_cache();
         try {
-            $this->checkFingerprint($connection);
+            $this->check_fingerprint($connection);
             $this->authenticate($connection);
         } catch (Throwable $exception) {
             $connection->disconnect();
             throw $exception;
         }
-
         return $connection;
     }
-
-    private function checkFingerprint(SFTP $connection): void
+    private function check_fingerprint(SFTP $connection): void
     {
-        if (! $this->hostFingerprint) {
+        if (!$this->host_fingerprint) {
             return;
         }
-
-        $publicKey = $connection->getServerPublicHostKey();
-
-        if ($publicKey === false) {
-            throw UnableToEstablishAuthenticityOfHost::becauseTheAuthenticityCantBeEstablished($this->host);
+        $public_key = $connection->get_server_public_host_key();
+        if ($public_key === false) {
+            throw Unable_To_Establish_Authenticity_Of_Host::because_the_authenticity_cant_be_established($this->host);
         }
-
-        $fingerprint = $this->getFingerprintFromPublicKey($publicKey);
-
-        if (0 !== strcasecmp($this->hostFingerprint, $fingerprint)) {
-            throw UnableToEstablishAuthenticityOfHost::becauseTheAuthenticityCantBeEstablished($this->host);
+        $fingerprint = $this->get_fingerprint_from_public_key($public_key);
+        if (0 !== strcasecmp($this->host_fingerprint, $fingerprint)) {
+            throw Unable_To_Establish_Authenticity_Of_Host::because_the_authenticity_cant_be_established($this->host);
         }
     }
-
-    private function getFingerprintFromPublicKey(string $publicKey): string
+    private function get_fingerprint_from_public_key(string $public_key): string
     {
-        $content = explode(' ', $publicKey, 3);
+        $content = explode(' ', $public_key, 3);
         $algo = $content[0] === 'ssh-rsa' ? 'md5' : 'sha512';
-
         return implode(':', str_split(hash($algo, base64_decode($content[1])), 2));
     }
-
     private function authenticate(SFTP $connection): void
     {
-        if ($this->privateKey !== null) {
-            $this->authenticateWithPrivateKey($connection);
-        } elseif ($this->useAgent) {
-            $this->authenticateWithAgent($connection);
+        if ($this->private_key !== null) {
+            $this->authenticate_with_private_key($connection);
+        } elseif ($this->use_agent) {
+            $this->authenticate_with_agent($connection);
         } else {
-            $this->authenticateWithUsernameAndPassword($connection);
+            $this->authenticate_with_username_and_password($connection);
         }
     }
-
-    private function authenticateWithUsernameAndPassword(SFTP $connection): void
+    private function authenticate_with_username_and_password(SFTP $connection): void
     {
-        if (! $connection->login($this->username, $this->password)) {
-            throw UnableToAuthenticate::withPassword($connection->getLastError());
+        if (!$connection->login($this->username, $this->password)) {
+            throw Unable_To_Authenticate::with_password($connection->get_last_error());
         }
     }
-
-    public static function fromArray(array $options): SftpConnectionProvider
+    public static function from_array(array $options): Sftp_Connection_Provider
     {
-        return new SftpConnectionProvider(
-            $options['host'],
-            $options['username'],
-            $options['password'] ?? null,
-            $options['privateKey'] ?? null,
-            $options['passphrase'] ?? null,
-            $options['port'] ?? 22,
-            $options['useAgent'] ?? false,
-            $options['timeout'] ?? 10,
-            $options['maxTries'] ?? 4,
-            $options['hostFingerprint'] ?? null,
-            $options['connectivityChecker'] ?? null,
-            $options['preferredAlgorithms'] ?? [],
-        );
+        return new Sftp_Connection_Provider($options['host'], $options['username'], $options['password'] ?? null, $options['privateKey'] ?? null, $options['passphrase'] ?? null, $options['port'] ?? 22, $options['useAgent'] ?? false, $options['timeout'] ?? 10, $options['maxTries'] ?? 4, $options['hostFingerprint'] ?? null, $options['connectivityChecker'] ?? null, $options['preferredAlgorithms'] ?? []);
     }
-
-    private function authenticateWithPrivateKey(SFTP $connection): void
+    private function authenticate_with_private_key(SFTP $connection): void
     {
-        $privateKey = $this->loadPrivateKey();
-
-        if ($connection->login($this->username, $privateKey)) {
+        $private_key = $this->load_private_key();
+        if ($connection->login($this->username, $private_key)) {
             return;
         }
-
         if ($this->password !== null && $connection->login($this->username, $this->password)) {
             return;
         }
-
-        throw UnableToAuthenticate::withPrivateKey($connection->getLastError());
+        throw Unable_To_Authenticate::with_private_key($connection->get_last_error());
     }
-
-    private function loadPrivateKey(): AsymmetricKey
+    private function load_private_key(): Asymmetric_Key
     {
-        if ((!str_starts_with($this->privateKey, '---') && !str_starts_with($this->privateKey, 'PuTTY')) && is_file($this->privateKey)) {
-            $this->privateKey = file_get_contents($this->privateKey);
+        if (!str_starts_with($this->private_key, '---') && !str_starts_with($this->private_key, 'PuTTY') && is_file($this->private_key)) {
+            $this->private_key = file_get_contents($this->private_key);
         }
-
         try {
             if ($this->passphrase !== null) {
-                return PublicKeyLoader::load($this->privateKey, $this->passphrase);
+                return Public_Key_Loader::load($this->private_key, $this->passphrase);
             }
-
-            return PublicKeyLoader::load($this->privateKey);
-        } catch (NoKeyLoadedException $exception) {
-            throw new UnableToLoadPrivateKey(null, $exception);
+            return Public_Key_Loader::load($this->private_key);
+        } catch (No_Key_Loaded_Exception $exception) {
+            throw new Unable_To_Load_Private_Key(null, $exception);
         }
     }
-
-    private function authenticateWithAgent(SFTP $connection): void
+    private function authenticate_with_agent(SFTP $connection): void
     {
         $agent = new Agent();
-
-        if (! $connection->login($this->username, $agent)) {
-            throw UnableToAuthenticate::withSshAgent($connection->getLastError());
+        if (!$connection->login($this->username, $agent)) {
+            throw Unable_To_Authenticate::with_ssh_agent($connection->get_last_error());
         }
     }
 }

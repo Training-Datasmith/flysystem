@@ -1,18 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
-namespace League\Flysystem\PhpseclibV2;
+declare (strict_types=1);
+namespace League\Flysystem\Phpseclib_V2;
 
 use phpseclib\Net\SFTP;
-
 /**
  * @deprecated The "League\Flysystem\PhpseclibV2\SimpleConnectivityChecker" class is deprecated since Flysystem 3.0, use "League\Flysystem\PhpseclibV3\SimpleConnectivityChecker" instead.
  */
-class SimpleConnectivityChecker implements ConnectivityChecker
+class Simple_Connectivity_Checker implements Connectivity_Checker
 {
-    public function isConnected(SFTP $connection): bool
+    public function is_connected(SFTP $connection): bool
     {
-        return $connection->isConnected();
+        return $connection->is_connected();
     }
 }

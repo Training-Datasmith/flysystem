@@ -1,53 +1,34 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace League\Flysystem\Local;
 
 use function in_array;
-
-use League\MimeTypeDetection\MimeTypeDetector;
-
-class FallbackMimeTypeDetector implements MimeTypeDetector
+use League\Mime_Type_Detection\Mime_Type_Detector;
+class Fallback_Mime_Type_Detector implements Mime_Type_Detector
 {
-    private const INCONCLUSIVE_MIME_TYPES = [
-        'application/x-empty',
-        'text/plain',
-        'text/x-asm',
-        'application/octet-stream',
-        'inode/x-empty',
-    ];
-
-    public function __construct(
-        private MimeTypeDetector $detector,
-        private array $inconclusiveMimetypes = self::INCONCLUSIVE_MIME_TYPES,
-        private bool $useInconclusiveMimeTypeFallback = false,
-    ) {
-    }
-
-    public function detectMimeType(string $path, $contents): ?string
+    private const INCONCLUSIVE_MIME_TYPES = ['application/x-empty', 'text/plain', 'text/x-asm', 'application/octet-stream', 'inode/x-empty'];
+    public function __construct(private Mime_Type_Detector $detector, private array $inconclusive_mimetypes = self::INCONCLUSIVE_MIME_TYPES, private bool $use_inconclusive_mime_type_fallback = false)
     {
-        return $this->detector->detectMimeType($path, $contents);
     }
-
-    public function detectMimeTypeFromBuffer(string $contents): ?string
+    public function detect_mime_type(string $path, $contents): ?string
     {
-        return $this->detector->detectMimeTypeFromBuffer($contents);
+        return $this->detector->detect_mime_type($path, $contents);
     }
-
-    public function detectMimeTypeFromPath(string $path): ?string
+    public function detect_mime_type_from_buffer(string $contents): ?string
     {
-        return $this->detector->detectMimeTypeFromPath($path);
+        return $this->detector->detect_mime_type_from_buffer($contents);
     }
-
-    public function detectMimeTypeFromFile(string $path): ?string
+    public function detect_mime_type_from_path(string $path): ?string
     {
-        $mimeType = $this->detector->detectMimeTypeFromFile($path);
-
-        if ($mimeType !== null && ! in_array($mimeType, $this->inconclusiveMimetypes)) {
-            return $mimeType;
+        return $this->detector->detect_mime_type_from_path($path);
+    }
+    public function detect_mime_type_from_file(string $path): ?string
+    {
+        $mime_type = $this->detector->detect_mime_type_from_file($path);
+        if ($mime_type !== null && !in_array($mime_type, $this->inconclusive_mimetypes)) {
+            return $mime_type;
         }
-
-        return $this->detector->detectMimeTypeFromPath($path) ?? ($this->useInconclusiveMimeTypeFallback ? $mimeType : null);
+        return $this->detector->detect_mime_type_from_path($path) ?? ($this->use_inconclusive_mime_type_fallback ? $mime_type : null);
     }
 }

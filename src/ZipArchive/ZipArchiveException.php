@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Zip_Archive;
 
-namespace League\Flysystem\ZipArchive;
-
-use League\Flysystem\FilesystemException;
-
-interface ZipArchiveException extends FilesystemException
+use League\Flysystem\Filesystem_Exception;
+interface Zip_Archive_Exception extends Filesystem_Exception
 {
 }

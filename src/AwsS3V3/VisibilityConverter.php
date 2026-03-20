@@ -1,12 +1,11 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace League\Flysystem\Aws_S3v3;
 
-namespace League\Flysystem\AwsS3V3;
-
-interface VisibilityConverter
+interface Visibility_Converter
 {
-    public function visibilityToAcl(string $visibility): string;
-    public function aclToVisibility(array $grants): string;
-    public function defaultForDirectories(): string;
+    public function visibility_to_acl(string $visibility): string;
+    public function acl_to_visibility(array $grants): string;
+    public function default_for_directories(): string;
 }
